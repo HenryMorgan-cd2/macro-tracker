@@ -1,13 +1,15 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState } from 'react';
 import { css } from '@emotion/react';
-import { Meal, Ingredient } from '../types';
+import { Meal, Ingredient, IngredientTemplate } from '../types';
 import { NumberField } from './NumberField';
 
 interface MealFormProps {
   meal?: Meal;
   onSubmit: (meal: Omit<Meal, 'id'>) => void;
   onCancel: () => void;
+  ingredientTemplates: IngredientTemplate[];
+  onSaveAsTemplate: (template: Omit<IngredientTemplate, 'id'>) => void;
 }
 
 interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein' | 'kcal' | 'quantity'> {
@@ -19,7 +21,13 @@ interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein
   kcal: number | null;
 }
 
-export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) => {
+export const MealForm: React.FC<MealFormProps> = ({ 
+  meal, 
+  onSubmit, 
+  onCancel, 
+  ingredientTemplates,
+  onSaveAsTemplate 
+}) => {
   // Helper function to format datetime for HTML datetime-local input
   const formatDateTimeForInput = (datetime: string) => {
     try {
@@ -96,6 +104,40 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
     }));
   };
 
+  const applyTemplate = (key: string, template: IngredientTemplate) => {
+    setFormData(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map(ingredient =>
+        ingredient.key === key
+          ? { 
+              ...ingredient, 
+              name: template.name,
+              carbs: template.carbs,
+              fat: template.fat,
+              protein: template.protein,
+              kcal: template.kcal,
+            }
+          : ingredient
+      )
+    }));
+  };
+
+  const saveIngredientAsTemplate = (ingredient: EditableIngredient) => {
+    if (ingredient.name && 
+        ingredient.carbs !== null && 
+        ingredient.fat !== null && 
+        ingredient.protein !== null && 
+        ingredient.kcal !== null) {
+      onSaveAsTemplate({
+        name: ingredient.name,
+        carbs: ingredient.carbs,
+        fat: ingredient.fat,
+        protein: ingredient.protein,
+        kcal: ingredient.kcal,
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Remove the key and convert null values to 0 before submitting
@@ -119,7 +161,7 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto;
     `} onSubmit={handleSubmit}>
       <h2>{meal ? 'Edit Meal' : 'Add New Meal'}</h2>
@@ -210,9 +252,10 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
             `}>
               <div css={css`
                 display: grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
                 gap: 0.75rem;
                 align-items: center;
+                margin-bottom: 0.75rem;
               `}>
                 <div css={css`
                   display: flex;
@@ -310,6 +353,82 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
                   onClick={() => removeIngredient(ingredient.key)}
                 >
                   Remove
+                </button>
+              </div>
+              
+              {/* Template Actions Row */}
+              <div css={css`
+                display: flex;
+                gap: 0.75rem;
+                align-items: center;
+                padding-top: 0.75rem;
+                border-top: 1px solid #dee2e6;
+              `}>
+                <div css={css`
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                `}>
+                  <span css={css`
+                    font-size: 0.875rem;
+                    color: #666;
+                    font-weight: 500;
+                  `}>Apply template:</span>
+                  <select
+                    css={css`
+                      padding: 0.25rem 0.5rem;
+                      border: 1px solid #ddd;
+                      border-radius: 4px;
+                      font-size: 0.875rem;
+                      background: white;
+                      
+                      &:focus {
+                        outline: none;
+                        border-color: #007bff;
+                      }
+                    `}
+                    onChange={(e) => {
+                      const template = ingredientTemplates.find(t => t.name === e.target.value);
+                      if (template) {
+                        applyTemplate(ingredient.key, template);
+                      }
+                    }}
+                    value=""
+                  >
+                    <option value="">Select template...</option>
+                    {ingredientTemplates.map(template => (
+                      <option key={template.id || template.name} value={template.name}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <button
+                  type="button"
+                  css={css`
+                    padding: 0.25rem 0.75rem;
+                    border: 1px solid #28a745;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    background-color: transparent;
+                    color: #28a745;
+                    
+                    &:hover {
+                      background-color: #28a745;
+                      color: white;
+                    }
+                  `}
+                  onClick={() => saveIngredientAsTemplate(ingredient)}
+                  disabled={!ingredient.name || 
+                    ingredient.carbs === null || 
+                    ingredient.fat === null || 
+                    ingredient.protein === null || 
+                    ingredient.kcal === null}
+                >
+                  Save as Template
                 </button>
               </div>
             </div>

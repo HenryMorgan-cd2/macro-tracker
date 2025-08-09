@@ -1,0 +1,469 @@
+/** @jsxImportSource @emotion/react */
+import React, { useState } from 'react';
+import { css } from '@emotion/react';
+import { IngredientTemplate } from '../types';
+import { NumberField } from './NumberField';
+
+interface IngredientTemplateManagerProps {
+  templates: IngredientTemplate[];
+  onSaveTemplate: (template: Omit<IngredientTemplate, 'id'>) => void;
+  onUpdateTemplate: (id: number, template: Omit<IngredientTemplate, 'id'>) => void;
+  onDeleteTemplate: (id: number) => void;
+  onClose: () => void;
+}
+
+interface EditableTemplate extends Omit<IngredientTemplate, 'carbs' | 'fat' | 'protein' | 'kcal'> {
+  key: string;
+  carbs: number | null;
+  fat: number | null;
+  protein: number | null;
+  kcal: number | null;
+}
+
+export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps> = ({
+  templates,
+  onSaveTemplate,
+  onUpdateTemplate,
+  onDeleteTemplate,
+  onClose
+}) => {
+  const [editingTemplate, setEditingTemplate] = useState<EditableTemplate | null>(null);
+  const [newTemplate, setNewTemplate] = useState<EditableTemplate>({
+    key: 'new',
+    name: '',
+    carbs: null,
+    fat: null,
+    protein: null,
+    kcal: null,
+  });
+
+  const handleNewTemplateChange = (field: keyof EditableTemplate, value: string | number | null) => {
+    setNewTemplate(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditingTemplateChange = (field: keyof EditableTemplate, value: string | number | null) => {
+    if (editingTemplate) {
+      setEditingTemplate(prev => prev ? { ...prev, [field]: value } : null);
+    }
+  };
+
+  const saveNewTemplate = () => {
+    if (newTemplate.name && 
+        newTemplate.carbs !== null && 
+        newTemplate.fat !== null && 
+        newTemplate.protein !== null && 
+        newTemplate.kcal !== null) {
+      onSaveTemplate({
+        name: newTemplate.name,
+        carbs: newTemplate.carbs,
+        fat: newTemplate.fat,
+        protein: newTemplate.protein,
+        kcal: newTemplate.kcal,
+      });
+      setNewTemplate({
+        key: 'new',
+        name: '',
+        carbs: null,
+        fat: null,
+        protein: null,
+        kcal: null,
+      });
+    }
+  };
+
+  const saveEditingTemplate = () => {
+    if (editingTemplate && 
+        editingTemplate.name && 
+        editingTemplate.carbs !== null && 
+        editingTemplate.fat !== null && 
+        editingTemplate.protein !== null && 
+        editingTemplate.kcal !== null) {
+      // Find the template ID from the templates array
+      const template = templates.find(t => t.name === editingTemplate.name);
+      if (template?.id) {
+        onUpdateTemplate(template.id, {
+          name: editingTemplate.name,
+          carbs: editingTemplate.carbs,
+          fat: editingTemplate.fat,
+          protein: editingTemplate.protein,
+          kcal: editingTemplate.kcal,
+        });
+        setEditingTemplate(null);
+      }
+    }
+  };
+
+  const startEditing = (template: IngredientTemplate) => {
+    setEditingTemplate({
+      key: template.id?.toString() || 'edit',
+      name: template.name,
+      carbs: template.carbs,
+      fat: template.fat,
+      protein: template.protein,
+      kcal: template.kcal,
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingTemplate(null);
+  };
+
+  return (
+    <div css={css`
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    `}>
+      <div css={css`
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      `}>
+        <div css={css`
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        `}>
+          <h2 css={css`
+            margin: 0;
+            color: #333;
+          `}>Ingredient Templates</h2>
+          <button css={css`
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            
+            &:hover {
+              color: #333;
+            }
+          `} onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        {/* Add New Template Section */}
+        <div css={css`
+          background: #f8f9fa;
+          padding: 1.5rem;
+          border-radius: 8px;
+          margin-bottom: 2rem;
+        `}>
+          <h3 css={css`
+            margin: 0 0 1rem 0;
+            color: #333;
+          `}>Add New Template</h3>
+          <div css={css`
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+          `}>
+            <div>
+              <label css={css`
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #333;
+              `}>Name</label>
+              <input
+                css={css`
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                  font-size: 0.875rem;
+                  
+                  &:focus {
+                    outline: none;
+                    border-color: #007bff;
+                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                  }
+                `}
+                type="text"
+                placeholder="e.g., Bell Pepper"
+                value={newTemplate.name}
+                onChange={(e) => handleNewTemplateChange('name', e.target.value)}
+              />
+            </div>
+            
+            <NumberField
+              label="Carbs (g)"
+              value={newTemplate.carbs}
+              onChange={(value) => handleNewTemplateChange('carbs', value)}
+              placeholder="0"
+              step={0.1}
+              min={0}
+            />
+            
+            <NumberField
+              label="Fat (g)"
+              value={newTemplate.fat}
+              onChange={(value) => handleNewTemplateChange('fat', value)}
+              placeholder="0"
+              step={0.1}
+              min={0}
+            />
+            
+            <NumberField
+              label="Protein (g)"
+              value={newTemplate.protein}
+              onChange={(value) => handleNewTemplateChange('protein', value)}
+              placeholder="0"
+              step={0.1}
+              min={0}
+            />
+            
+            <NumberField
+              label="Calories"
+              value={newTemplate.kcal}
+              onChange={(value) => handleNewTemplateChange('kcal', value)}
+              placeholder="0"
+              step={0.1}
+              min={0}
+            />
+            
+            <button
+              type="button"
+              css={css`
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 4px;
+                font-size: 0.875rem;
+                cursor: pointer;
+                transition: background-color 0.2s;
+                background-color: #28a745;
+                color: white;
+                
+                &:hover {
+                  background-color: #218838;
+                }
+              `}
+              onClick={saveNewTemplate}
+            >
+              Save Template
+            </button>
+          </div>
+        </div>
+
+        {/* Existing Templates Section */}
+        <div>
+          <h3 css={css`
+            margin: 0 0 1rem 0;
+            color: #333;
+          `}>Existing Templates</h3>
+          {templates.length === 0 ? (
+            <p css={css`
+              color: #666;
+              text-align: center;
+              padding: 2rem;
+            `}>No templates yet. Create your first one above!</p>
+          ) : (
+            <div css={css`
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+            `}>
+              {templates.map((template) => {
+                const isEditing = editingTemplate?.name === template.name;
+                
+                return (
+                  <div key={template.id || template.name} css={css`
+                    background: #f8f9fa;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    border-left: 4px solid #007bff;
+                  `}>
+                    {isEditing ? (
+                      <div css={css`
+                        display: grid;
+                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                        gap: 1rem;
+                        align-items: center;
+                      `}>
+                        <input
+                          css={css`
+                            width: 100%;
+                            padding: 0.5rem;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                            font-size: 0.875rem;
+                            
+                            &:focus {
+                              outline: none;
+                              border-color: #007bff;
+                              box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                            }
+                          `}
+                          type="text"
+                          value={editingTemplate.name}
+                          onChange={(e) => handleEditingTemplateChange('name', e.target.value)}
+                        />
+                        
+                        <NumberField
+                          label=""
+                          value={editingTemplate.carbs}
+                          onChange={(value) => handleEditingTemplateChange('carbs', value)}
+                          placeholder="0"
+                          step={0.1}
+                          min={0}
+                        />
+                        
+                        <NumberField
+                          label=""
+                          value={editingTemplate.fat}
+                          onChange={(value) => handleEditingTemplateChange('fat', value)}
+                          placeholder="0"
+                          step={0.1}
+                          min={0}
+                        />
+                        
+                        <NumberField
+                          label=""
+                          value={editingTemplate.protein}
+                          onChange={(value) => handleEditingTemplateChange('protein', value)}
+                          placeholder="0"
+                          step={0.1}
+                          min={0}
+                        />
+                        
+                        <NumberField
+                          label=""
+                          value={editingTemplate.kcal}
+                          onChange={(value) => handleEditingTemplateChange('kcal', value)}
+                          placeholder="0"
+                          step={0.1}
+                          min={0}
+                        />
+                        
+                        <div css={css`
+                          display: flex;
+                          gap: 0.5rem;
+                        `}>
+                          <button
+                            type="button"
+                            css={css`
+                              padding: 0.5rem 1rem;
+                              border: none;
+                              border-radius: 4px;
+                              font-size: 0.875rem;
+                              cursor: pointer;
+                              transition: background-color 0.2s;
+                              background-color: #28a745;
+                              color: white;
+                              
+                              &:hover {
+                                background-color: #218838;
+                              }
+                            `}
+                            onClick={saveEditingTemplate}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            css={css`
+                              padding: 0.5rem 1rem;
+                              border: none;
+                              border-radius: 4px;
+                              font-size: 0.875rem;
+                              cursor: pointer;
+                              transition: background-color 0.2s;
+                              background-color: #6c757d;
+                              color: white;
+                              
+                              &:hover {
+                                background-color: #545b62;
+                              }
+                            `}
+                            onClick={cancelEditing}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div css={css`
+                        display: grid;
+                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                        gap: 1rem;
+                        align-items: center;
+                      `}>
+                        <div css={css`
+                          font-weight: 600;
+                          color: #333;
+                        `}>{template.name}</div>
+                        <div css={css`text-align: center;`}>{template.carbs}g</div>
+                        <div css={css`text-align: center;`}>{template.fat}g</div>
+                        <div css={css`text-align: center;`}>{template.protein}g</div>
+                        <div css={css`text-align: center;`}>{template.kcal}</div>
+                        <div css={css`
+                          display: flex;
+                          gap: 0.5rem;
+                        `}>
+                          <button
+                            type="button"
+                            css={css`
+                              padding: 0.5rem 1rem;
+                              border: none;
+                              border-radius: 4px;
+                              font-size: 0.875rem;
+                              cursor: pointer;
+                              transition: background-color 0.2s;
+                              background-color: #007bff;
+                              color: white;
+                              
+                              &:hover {
+                                background-color: #0056b3;
+                              }
+                            `}
+                            onClick={() => startEditing(template)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            css={css`
+                              padding: 0.5rem 1rem;
+                              border: none;
+                              border-radius: 4px;
+                              font-size: 0.875rem;
+                              cursor: pointer;
+                              transition: background-color 0.2s;
+                              background-color: #dc3545;
+                              color: white;
+                              
+                              &:hover {
+                                background-color: #c82333;
+                              }
+                            `}
+                            onClick={() => template.id && onDeleteTemplate(template.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

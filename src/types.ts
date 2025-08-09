@@ -8,6 +8,15 @@ export interface Ingredient {
   kcal: number;
 }
 
+export interface IngredientTemplate {
+  id?: number;
+  name: string;
+  carbs: number;
+  fat: number;
+  protein: number;
+  kcal: number;
+}
+
 export interface Meal {
   id?: number;
   name: string;
