@@ -10,8 +10,9 @@ interface MealFormProps {
   onCancel: () => void;
 }
 
-interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein' | 'kcal'> {
+interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein' | 'kcal' | 'quantity'> {
   key: string;
+  quantity: number | null;
   carbs: number | null;
   fat: number | null;
   protein: number | null;
@@ -19,11 +20,34 @@ interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein
 }
 
 export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) => {
+  // Helper function to format datetime for HTML datetime-local input
+  const formatDateTimeForInput = (datetime: string) => {
+    try {
+      const date = new Date(datetime);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return new Date().toISOString().slice(0, 16);
+      }
+      
+      // Format the date in local timezone (YYYY-MM-DDTHH:MM)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      return new Date().toISOString().slice(0, 16);
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: meal?.name || '',
-    datetime: meal?.datetime || new Date().toISOString().slice(0, 16),
+    datetime: formatDateTimeForInput(meal?.datetime || new Date().toISOString()),
     ingredients: (meal?.ingredients || []).map(ingredient => ({
       ...ingredient,
+      quantity: ingredient.quantity || null,
       carbs: ingredient.carbs || null,
       fat: ingredient.fat || null,
       protein: ingredient.protein || null,
@@ -52,6 +76,7 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
     const newIngredient: EditableIngredient = {
       key: Math.random().toString(36).substr(2, 9),
       name: '',
+      quantity: null,
       carbs: null,
       fat: null,
       protein: null,
@@ -76,8 +101,9 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
     // Remove the key and convert null values to 0 before submitting
     const submitData = {
       ...formData,
-      ingredients: formData.ingredients.map(({ key, carbs, fat, protein, kcal, ...ingredient }) => ({
+      ingredients: formData.ingredients.map(({ key, carbs, fat, protein, kcal, quantity, ...ingredient }) => ({
         ...ingredient,
+        quantity: quantity || 1,
         carbs: carbs || 0,
         fat: fat || 0,
         protein: protein || 0,
@@ -184,7 +210,7 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
             `}>
               <div css={css`
                 display: grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
                 gap: 0.75rem;
                 align-items: center;
               `}>
@@ -218,6 +244,15 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel }) 
                     onChange={(e) => handleIngredientChange(ingredient.key, 'name', e.target.value)}
                   />
                 </div>
+                
+                <NumberField
+                  label="Quantity"
+                  value={ingredient.quantity}
+                  onChange={(value) => handleIngredientChange(ingredient.key, 'quantity', value)}
+                  placeholder="0"
+                  step={1}
+                  min={0}
+                />
                 
                 <NumberField
                   label="Carbs (g)"

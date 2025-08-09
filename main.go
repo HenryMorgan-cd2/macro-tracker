@@ -8,17 +8,18 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type Ingredient struct {
-	ID     int     `json:"id,omitempty"`
-	Name   string  `json:"name"`
-	Carbs  float64 `json:"carbs"`
-	Fat    float64 `json:"fat"`
-	Protein float64 `json:"protein"`
-	Kcal   float64 `json:"kcal"`
+	ID       int     `json:"id,omitempty"`
+	Name     string  `json:"name"`
+	Quantity float64 `json:"quantity"`
+	Carbs    float64 `json:"carbs"`
+	Fat      float64 `json:"fat"`
+	Protein  float64 `json:"protein"`
+	Kcal     float64 `json:"kcal"`
 }
 
 type Meal struct {
@@ -115,6 +116,7 @@ func initDB() error {
 		CREATE TABLE IF NOT EXISTS ingredients (
 			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
+			quantity DECIMAL(8,2) NOT NULL DEFAULT 1,
 			carbs DECIMAL(8,2) NOT NULL DEFAULT 0,
 			fat DECIMAL(8,2) NOT NULL DEFAULT 0,
 			protein DECIMAL(8,2) NOT NULL DEFAULT 0,
@@ -143,7 +145,7 @@ func initDB() error {
 func getMeals(c *gin.Context) {
 	rows, err := db.Query(`
 		SELECT m.id, m.name, m.datetime, 
-		       i.id, i.name, i.carbs, i.fat, i.protein, i.kcal
+		       i.id, i.name, i.quantity, i.carbs, i.fat, i.protein, i.kcal
 		FROM meals m
 		LEFT JOIN meal_ingredients mi ON m.id = mi.meal_id
 		LEFT JOIN ingredients i ON mi.ingredient_id = i.id
@@ -161,9 +163,9 @@ func getMeals(c *gin.Context) {
 		var mealName, mealDateTime string
 		var ingredientID sql.NullInt64
 		var ingredientName sql.NullString
-		var carbs, fat, protein, kcal sql.NullFloat64
+		var quantity, carbs, fat, protein, kcal sql.NullFloat64
 
-		err := rows.Scan(&mealID, &mealName, &mealDateTime, &ingredientID, &ingredientName, &carbs, &fat, &protein, &kcal)
+		err := rows.Scan(&mealID, &mealName, &mealDateTime, &ingredientID, &ingredientName, &quantity, &carbs, &fat, &protein, &kcal)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -182,12 +184,13 @@ func getMeals(c *gin.Context) {
 
 		if ingredientID.Valid {
 			ingredient := Ingredient{
-				ID:      int(ingredientID.Int64),
-				Name:    ingredientName.String,
-				Carbs:   carbs.Float64,
-				Fat:     fat.Float64,
-				Protein: protein.Float64,
-				Kcal:    kcal.Float64,
+				ID:       int(ingredientID.Int64),
+				Name:     ingredientName.String,
+				Quantity: quantity.Float64,
+				Carbs:    carbs.Float64,
+				Fat:      fat.Float64,
+				Protein:  protein.Float64,
+				Kcal:     kcal.Float64,
 			}
 			meal.Ingredients = append(meal.Ingredients, ingredient)
 		}
@@ -206,7 +209,7 @@ func getMeal(c *gin.Context) {
 	
 	rows, err := db.Query(`
 		SELECT m.id, m.name, m.datetime, 
-		       i.id, i.name, i.carbs, i.fat, i.protein, i.kcal
+		       i.id, i.name, i.quantity, i.carbs, i.fat, i.protein, i.kcal
 		FROM meals m
 		LEFT JOIN meal_ingredients mi ON m.id = mi.meal_id
 		LEFT JOIN ingredients i ON mi.ingredient_id = i.id
@@ -224,9 +227,9 @@ func getMeal(c *gin.Context) {
 		var mealName, mealDateTime string
 		var ingredientID sql.NullInt64
 		var ingredientName sql.NullString
-		var carbs, fat, protein, kcal sql.NullFloat64
+		var quantity, carbs, fat, protein, kcal sql.NullFloat64
 
-		err := rows.Scan(&mealID, &mealName, &mealDateTime, &ingredientID, &ingredientName, &carbs, &fat, &protein, &kcal)
+		err := rows.Scan(&mealID, &mealName, &mealDateTime, &ingredientID, &ingredientName, &quantity, &carbs, &fat, &protein, &kcal)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -243,12 +246,13 @@ func getMeal(c *gin.Context) {
 
 		if ingredientID.Valid {
 			ingredient := Ingredient{
-				ID:      int(ingredientID.Int64),
-				Name:    ingredientName.String,
-				Carbs:   carbs.Float64,
-				Fat:     fat.Float64,
-				Protein: protein.Float64,
-				Kcal:    kcal.Float64,
+				ID:       int(ingredientID.Int64),
+				Name:     ingredientName.String,
+				Quantity: quantity.Float64,
+				Carbs:    carbs.Float64,
+				Fat:      fat.Float64,
+				Protein:  protein.Float64,
+				Kcal:     kcal.Float64,
 			}
 			meal.Ingredients = append(meal.Ingredients, ingredient)
 		}
@@ -288,10 +292,10 @@ func createMeal(c *gin.Context) {
 	for _, ingredient := range meal.Ingredients {
 		var ingredientID int
 		err = tx.QueryRow(`
-			INSERT INTO ingredients (name, carbs, fat, protein, kcal) 
-			VALUES ($1, $2, $3, $4, $5) 
+			INSERT INTO ingredients (name, quantity, carbs, fat, protein, kcal) 
+			VALUES ($1, $2, $3, $4, $5, $6) 
 			RETURNING id
-		`, ingredient.Name, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&ingredientID)
+		`, ingredient.Name, ingredient.Quantity, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&ingredientID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -346,10 +350,10 @@ func updateMeal(c *gin.Context) {
 	for _, ingredient := range meal.Ingredients {
 		var ingredientID int
 		err = tx.QueryRow(`
-			INSERT INTO ingredients (name, carbs, fat, protein, kcal) 
-			VALUES ($1, $2, $3, $4, $5) 
+			INSERT INTO ingredients (name, quantity, carbs, fat, protein, kcal) 
+			VALUES ($1, $2, $3, $4, $5, $6) 
 			RETURNING id
-		`, ingredient.Name, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&ingredientID)
+		`, ingredient.Name, ingredient.Quantity, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&ingredientID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -383,7 +387,7 @@ func deleteMeal(c *gin.Context) {
 }
 
 func getIngredients(c *gin.Context) {
-	rows, err := db.Query("SELECT id, name, carbs, fat, protein, kcal FROM ingredients ORDER BY name")
+	rows, err := db.Query("SELECT id, name, quantity, carbs, fat, protein, kcal FROM ingredients ORDER BY name")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -393,7 +397,7 @@ func getIngredients(c *gin.Context) {
 	var ingredients []Ingredient
 	for rows.Next() {
 		var ingredient Ingredient
-		err := rows.Scan(&ingredient.ID, &ingredient.Name, &ingredient.Carbs, &ingredient.Fat, &ingredient.Protein, &ingredient.Kcal)
+		err := rows.Scan(&ingredient.ID, &ingredient.Name, &ingredient.Quantity, &ingredient.Carbs, &ingredient.Fat, &ingredient.Protein, &ingredient.Kcal)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -413,10 +417,10 @@ func createIngredient(c *gin.Context) {
 
 	var id int
 	err := db.QueryRow(`
-		INSERT INTO ingredients (name, carbs, fat, protein, kcal) 
-		VALUES ($1, $2, $3, $4, $5) 
+		INSERT INTO ingredients (name, quantity, carbs, fat, protein, kcal) 
+		VALUES ($1, $2, $3, $4, $5, $6) 
 		RETURNING id
-	`, ingredient.Name, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&id)
+	`, ingredient.Name, ingredient.Quantity, ingredient.Carbs, ingredient.Fat, ingredient.Protein, ingredient.Kcal).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -6,6 +6,7 @@ A full-stack meal tracking application built with React, Vite, Emotion CSS, Go, 
 
 - Track meals with multiple ingredients
 - Each ingredient has nutritional information (carbs, fat, protein, kcal)
+- Quantity support - specify amounts like "2 bell peppers" with automatic macro calculations
 - Beautiful, modern UI with responsive design
 - Full CRUD operations for meals
 - Real-time nutritional calculations
@@ -99,11 +100,14 @@ The frontend will start on `http://localhost:5173`
 2. Enter the meal name and datetime
 3. Add ingredients with their nutritional information:
    - Name
-   - Carbs (g)
-   - Fat (g)
-   - Protein (g)
-   - Calories (kcal)
+   - **Quantity** (e.g., 2 for "2 bell peppers")
+   - Carbs (g) - per unit
+   - Fat (g) - per unit
+   - Protein (g) - per unit
+   - Calories (kcal) - per unit
 4. Click "Add Meal" to save
+
+**Note:** The quantity field allows you to specify how many units of an ingredient you're using. For example, if you enter "Bell Pepper" with 5g carbs, 0g fat, 1g protein, and 25 kcal, and set quantity to 2, the final values will be 10g carbs, 0g fat, 2g protein, and 50 kcal.
 
 ### Viewing Meals
 

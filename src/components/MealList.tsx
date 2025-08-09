@@ -25,10 +25,10 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
       (totals, ingredient) => ({
-        carbs: totals.carbs + ingredient.carbs,
-        fat: totals.fat + ingredient.fat,
-        protein: totals.protein + ingredient.protein,
-        kcal: totals.kcal + ingredient.kcal,
+        carbs: totals.carbs + (ingredient.carbs * ingredient.quantity),
+        fat: totals.fat + (ingredient.fat * ingredient.quantity),
+        protein: totals.protein + (ingredient.protein * ingredient.quantity),
+        kcal: totals.kcal + (ingredient.kcal * ingredient.quantity),
       }),
       { carbs: 0, fat: 0, protein: 0, kcal: 0 }
     );
@@ -83,6 +83,11 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
       groups[dateKey].totals.fat += mealTotals.fat;
       groups[dateKey].totals.protein += mealTotals.protein;
       groups[dateKey].totals.kcal += mealTotals.kcal;
+
+      // Sort meals in a day by newest at the top
+      groups[dateKey].meals.sort((a, b) => 
+        new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+      );
     });
 
     return Object.values(groups).sort((a, b) => 
@@ -327,7 +332,9 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                             font-weight: 600;
                             color: #333;
                             margin-bottom: 0.5rem;
-                          `}>{ingredient.name}</div>
+                          `}>
+                            {ingredient.quantity > 1 ? `${ingredient.quantity} × ` : ''}{ingredient.name}
+                          </div>
                           <div css={css`
                             display: grid;
                             grid-template-columns: repeat(4, 1fr);
@@ -348,7 +355,7 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Carbs</span>
-                              <span>{ingredient.carbs}g</span>
+                              <span>{(ingredient.carbs * ingredient.quantity).toFixed(1)}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -364,7 +371,7 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Fat</span>
-                              <span>{ingredient.fat}g</span>
+                              <span>{(ingredient.fat * ingredient.quantity).toFixed(1)}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -380,7 +387,7 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Protein</span>
-                              <span>{ingredient.protein}g</span>
+                              <span>{(ingredient.protein * ingredient.quantity).toFixed(1)}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -396,9 +403,19 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>kcal</span>
-                              <span>{ingredient.kcal}</span>
+                              <span>{(ingredient.kcal * ingredient.quantity).toFixed(0)}</span>
                             </div>
                           </div>
+                          {ingredient.quantity > 1 && (
+                            <div css={css`
+                              margin-top: 0.5rem;
+                              font-size: 0.75rem;
+                              color: #666;
+                              text-align: center;
+                            `}>
+                              Per unit: {ingredient.carbs}g carbs, {ingredient.fat}g fat, {ingredient.protein}g protein, {ingredient.kcal} kcal
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -514,3 +531,5 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
     </div>
   );
 };
+
+
