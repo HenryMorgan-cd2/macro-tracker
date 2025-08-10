@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: registry.digitalocean.com/fileboy/macro-tracker:0
+    ports:
+      - "9001:9001"
+    env_file:
+      - env.production
+    restart: unless-stopped

@@ -47,6 +47,7 @@ func main() {
 	if connStr == "" {
 		connStr = "postgres://postgres:password@localhost:5432/macro_tracker?sslmode=disable"
 	}
+	log.Print("Connecting to database with connection string:", connStr)
 
 	var err error
 	db, err = sql.Open("postgres", connStr)
@@ -61,9 +62,9 @@ func main() {
 	}
 
 	// Initialize database tables
-	if err = initDB(); err != nil {
-		log.Fatal(err)
-	}
+	// if err = initDB(); err != nil {
+	// 	log.Fatal(fmt.Errorf("failed to initialize database: %w", err))
+	// }
 
 	// Setup Gin router
 	r := gin.Default()
@@ -74,6 +75,12 @@ func main() {
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	r.Use(cors.New(config))
+
+	// Serve static files from the dist directory
+	r.Static("/assets", "./dist/assets")
+	r.StaticFile("/", "./dist/index.html")
+	r.StaticFile("/index.html", "./dist/index.html")
+	r.StaticFile("/favicon.ico", "./dist/favicon.ico")
 
 	// API routes
 	api := r.Group("/api")
