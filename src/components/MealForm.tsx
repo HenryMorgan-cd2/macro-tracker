@@ -236,6 +236,16 @@ export const MealForm: React.FC<MealFormProps> = ({
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       max-width: 800px;
       margin: 0 auto;
+      
+      @media (max-width: 768px) {
+        padding: 1rem;
+        margin: 0 0.5rem;
+      }
+      
+      @media (max-width: 480px) {
+        padding: 0.75rem;
+        margin: 0 0.25rem;
+      }
     `} onSubmit={handleSubmit}>
       <h2>{initialData ? 'Edit Meal' : 'Add New Meal'}</h2>
       
@@ -324,142 +334,172 @@ export const MealForm: React.FC<MealFormProps> = ({
               margin-bottom: 0.5rem;
             `}>
               <div css={css`
-                display: grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                display: flex;
+                flex-direction: column;
                 gap: 0.75rem;
-                align-items: center;
                 margin-bottom: 0.75rem;
               `}>
+                {/* Row 1: Name, Quantity, Actions */}
                 <div css={css`
-                  display: flex;
-                  flex-direction: column;
+                  display: grid;
+                  grid-template-columns: 2fr 1fr auto;
+                  gap: 0.75rem;
+                  align-items: end;
+                  
+                  @media (max-width: 480px) {
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                  }
                 `}>
-                  <label css={css`
-                    display: block;
-                    margin-bottom: 0.5rem;
-                    font-weight: 600;
-                    color: #333;
-                  `}>Name</label>
-                  <input
+                  <div css={css`
+                    display: flex;
+                    flex-direction: column;
+                  `}>
+                    <label css={css`
+                      display: block;
+                      margin-bottom: 0.5rem;
+                      font-weight: 600;
+                      color: #333;
+                    `}>Name</label>
+                    <input
+                      css={css`
+                        width: 100%;
+                        padding: 0.5rem;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 0.875rem;
+                        
+                        &:focus {
+                          outline: none;
+                          border-color: #007bff;
+                          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                        }
+                      `}
+                      type="text"
+                      placeholder="e.g., Chicken Breast"
+                      value={ingredient.name}
+                      onChange={(e) => handleIngredientChange(ingredient.key, 'name', e.target.value)}
+                    />
+                  </div>
+                  
+                  <NumberField
+                    label="Quantity"
+                    value={ingredient.quantity}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'quantity', value)}
+                    placeholder="0"
+                    step={1}
+                    min={0}
+                  />
+                  
+                  <button
+                    type="button"
                     css={css`
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid #ddd;
+                      padding: 0.25rem 0.5rem;
+                      border: none;
                       border-radius: 4px;
                       font-size: 0.875rem;
+                      cursor: pointer;
+                      transition: background-color 0.2s;
+                      background-color: #dc3545;
+                      color: white;
+                      height: fit-content;
                       
-                      &:focus {
-                        outline: none;
-                        border-color: #007bff;
-                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                      &:hover {
+                        background-color: #c82333;
                       }
                     `}
-                    type="text"
-                    placeholder="e.g., Chicken Breast"
-                    value={ingredient.name}
-                    onChange={(e) => handleIngredientChange(ingredient.key, 'name', e.target.value)}
+                    onClick={() => removeIngredient(ingredient.key)}
+                  >
+                    Remove
+                  </button>
+                </div>
+                
+                {/* Row 2: Macro Unit and Macros */}
+                <div css={css`
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+                  gap: 0.75rem;
+                  align-items: end;
+                  
+                  @media (max-width: 768px) {
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                  }
+                  
+                  @media (max-width: 480px) {
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                  }
+                `}>
+                  <div css={css`
+                    display: flex;
+                    flex-direction: column;
+                  `}>
+                    <label css={css`
+                      display: block;
+                      margin-bottom: 0.5rem;
+                      font-weight: 600;
+                      color: #333;
+                    `}>Macro Unit</label>
+                    <select
+                      css={css`
+                        width: 100%;
+                        padding: 0.5rem;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 0.875rem;
+                        background: white;
+                        
+                        &:focus {
+                          outline: none;
+                          border-color: #007bff;
+                          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                        }
+                      `}
+                      value={ingredient.macroUnit}
+                      onChange={(e) => handleIngredientChange(ingredient.key, 'macroUnit', e.target.value as 'per_unit' | 'per_100g')}
+                    >
+                      <option value="per_unit">Per Unit</option>
+                      <option value="per_100g">Per 100g</option>
+                    </select>
+                  </div>
+                  
+                  <NumberField
+                    label={`Carbs (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.carbs}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'carbs', value)}
+                    placeholder="0"
+                    step={0.1}
+                    min={0}
+                  />
+                  
+                  <NumberField
+                    label={`Fat (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.fat}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'fat', value)}
+                    placeholder="0"
+                    step={0.1}
+                    min={0}
+                  />
+                  
+                  <NumberField
+                    label={`Protein (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.protein}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'protein', value)}
+                    placeholder="0"
+                    step={0.1}
+                    min={0}
+                  />
+                  
+                  <NumberField
+                    label={`Calories ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.kcal}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'kcal', value)}
+                    placeholder="0"
+                    step={0.1}
+                    min={0}
                   />
                 </div>
-                
-                <NumberField
-                  label="Quantity"
-                  value={ingredient.quantity}
-                  onChange={(value) => handleIngredientChange(ingredient.key, 'quantity', value)}
-                  placeholder="0"
-                  step={1}
-                  min={0}
-                />
-                
-                <div css={css`
-                  display: flex;
-                  flex-direction: column;
-                `}>
-                  <label css={css`
-                    display: block;
-                    margin-bottom: 0.5rem;
-                    font-weight: 600;
-                    color: #333;
-                  `}>Macro Unit</label>
-                  <select
-                    css={css`
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid #ddd;
-                      border-radius: 4px;
-                      font-size: 0.875rem;
-                      background: white;
-                      
-                      &:focus {
-                        outline: none;
-                        border-color: #007bff;
-                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-                      }
-                    `}
-                    value={ingredient.macroUnit}
-                    onChange={(e) => handleIngredientChange(ingredient.key, 'macroUnit', e.target.value as 'per_unit' | 'per_100g')}
-                  >
-                    <option value="per_unit">Per Unit</option>
-                    <option value="per_100g">Per 100g</option>
-                  </select>
-                </div>
-                
-                <NumberField
-                  label={`Carbs (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                  value={ingredient.carbs}
-                  onChange={(value) => handleIngredientChange(ingredient.key, 'carbs', value)}
-                  placeholder="0"
-                  step={0.1}
-                  min={0}
-                />
-                
-                <NumberField
-                  label={`Fat (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                  value={ingredient.fat}
-                  onChange={(value) => handleIngredientChange(ingredient.key, 'fat', value)}
-                  placeholder="0"
-                  step={0.1}
-                  min={0}
-                />
-                
-                <NumberField
-                  label={`Protein (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                  value={ingredient.protein}
-                  onChange={(value) => handleIngredientChange(ingredient.key, 'protein', value)}
-                  placeholder="0"
-                  step={0.1}
-                  min={0}
-                />
-                
-                <NumberField
-                  label={`Calories ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                  value={ingredient.kcal}
-                  onChange={(value) => handleIngredientChange(ingredient.key, 'kcal', value)}
-                  placeholder="0"
-                  step={0.1}
-                  min={0}
-                />
-                
-                <button
-                  type="button"
-                  css={css`
-                    padding: 0.25rem 0.5rem;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                    background-color: #dc3545;
-                    color: white;
-                    height: fit-content;
-                    
-                    &:hover {
-                      background-color: #c82333;
-                    }
-                  `}
-                  onClick={() => removeIngredient(ingredient.key)}
-                >
-                  Remove
-                </button>
               </div>
               
               {/* Template Actions Row */}
