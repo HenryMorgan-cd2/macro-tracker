@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import { IngredientTemplate } from '../types';
 import { NumberField } from './NumberField';
+import { Button } from './Button';
 
 interface IngredientTemplateManagerProps {
   templates: IngredientTemplate[];
@@ -146,19 +147,15 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
             margin: 0;
             color: #333;
           `}>Ingredient Templates</h2>
-          <button css={css`
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            
-            &:hover {
-              color: #333;
-            }
-          `} onClick={onClose}>
+          <Button
+            buttonStyle="outline"
+            color="#666"
+            size="regular"
+            onClick={onClose}
+            className="text-2xl p-0 w-8 h-8 flex items-center justify-center"
+          >
             ×
-          </button>
+          </Button>
         </div>
 
         {/* Add New Template Section */}
@@ -272,26 +269,14 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
               min={0}
             />
             
-            <button
-              type="button"
-              css={css`
-                padding: 0.75rem 1.5rem;
-                border: none;
-                border-radius: 4px;
-                font-size: 0.875rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                background-color: #28a745;
-                color: white;
-                
-                &:hover {
-                  background-color: #218838;
-                }
-              `}
+            <Button
+              buttonStyle="solid"
+              color="#28a745"
+              size="regular"
               onClick={saveNewTemplate}
             >
               Save Template
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -411,46 +396,22 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           display: flex;
                           gap: 0.5rem;
                         `}>
-                          <button
-                            type="button"
-                            css={css`
-                              padding: 0.5rem 1rem;
-                              border: none;
-                              border-radius: 4px;
-                              font-size: 0.875rem;
-                              cursor: pointer;
-                              transition: background-color 0.2s;
-                              background-color: #28a745;
-                              color: white;
-                              
-                              &:hover {
-                                background-color: #218838;
-                              }
-                            `}
+                          <Button
+                            buttonStyle="solid"
+                            color="#28a745"
+                            size="regular"
                             onClick={saveEditingTemplate}
                           >
                             Save
-                          </button>
-                          <button
-                            type="button"
-                            css={css`
-                              padding: 0.5rem 1rem;
-                              border: none;
-                              border-radius: 4px;
-                              font-size: 0.875rem;
-                              cursor: pointer;
-                              transition: background-color 0.2s;
-                              background-color: #6c757d;
-                              color: white;
-                              
-                              &:hover {
-                                background-color: #545b62;
-                              }
-                            `}
+                          </Button>
+                          <Button
+                            buttonStyle="solid"
+                            color="#6c757d"
+                            size="regular"
                             onClick={cancelEditing}
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : (
@@ -473,46 +434,22 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           display: flex;
                           gap: 0.5rem;
                         `}>
-                          <button
-                            type="button"
-                            css={css`
-                              padding: 0.5rem 1rem;
-                              border: none;
-                              border-radius: 4px;
-                              font-size: 0.875rem;
-                              cursor: pointer;
-                              transition: background-color 0.2s;
-                              background-color: #007bff;
-                              color: white;
-                              
-                              &:hover {
-                                background-color: #0056b3;
-                              }
-                            `}
+                          <Button
+                            buttonStyle="solid"
+                            color="#007bff"
+                            size="regular"
                             onClick={() => startEditing(template)}
                           >
                             Edit
-                          </button>
-                          <button
-                            type="button"
-                            css={css`
-                              padding: 0.5rem 1rem;
-                              border: none;
-                              border-radius: 4px;
-                              font-size: 0.875rem;
-                              cursor: pointer;
-                              transition: background-color 0.2s;
-                              background-color: #dc3545;
-                              color: white;
-                              
-                              &:hover {
-                                background-color: #c82333;
-                              }
-                            `}
+                          </Button>
+                          <Button
+                            buttonStyle="solid"
+                            color="#dc3545"
+                            size="regular"
                             onClick={() => template.id && onDeleteTemplate(template.id)}
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}

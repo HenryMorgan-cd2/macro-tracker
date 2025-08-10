@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { css } from '@emotion/react';
 import { Meal, Ingredient, IngredientTemplate } from '../types';
 import { NumberField } from './NumberField';
+import { Button } from './Button';
 import { api } from '../api';
 
 interface MealFormProps {
@@ -374,27 +375,14 @@ export const MealForm: React.FC<MealFormProps> = ({
                     min={0}
                   />
                   
-                  <button
-                    type="button"
-                    css={css`
-                      padding: 0.25rem 0.5rem;
-                      border: none;
-                      border-radius: 4px;
-                      font-size: 0.875rem;
-                      cursor: pointer;
-                      transition: background-color 0.2s;
-                      background-color: #dc3545;
-                      color: white;
-                      height: fit-content;
-                      
-                      &:hover {
-                        background-color: #c82333;
-                      }
-                    `}
+                  <Button
+                    buttonStyle="solid"
+                    color="#dc3545"
+                    size="regular"
                     onClick={() => removeIngredient(ingredient.key)}
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
                 
                 {/* Row 2: Macro Unit and Macros */}
@@ -492,23 +480,10 @@ export const MealForm: React.FC<MealFormProps> = ({
                 padding-top: 0.75rem;
                 border-top: 1px solid #dee2e6;
               `}>
-                <button
-                  type="button"
-                  css={css`
-                    padding: 0.25rem 0.75rem;
-                    border: 1px solid #28a745;
-                    border-radius: 4px;
-                    font-size: 0.75rem;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    background-color: transparent;
-                    color: #28a745;
-                    
-                    &:hover {
-                      background-color: #28a745;
-                      color: white;
-                    }
-                  `}
+                <Button
+                  buttonStyle="outline"
+                  color="#28a745"
+                  size="regular"
                   onClick={() => saveIngredientAsTemplate(ingredient)}
                   disabled={!ingredient.name || 
                     ingredient.carbs === null || 
@@ -517,7 +492,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                     ingredient.kcal === null}
                 >
                   Save as Template
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -527,28 +502,20 @@ export const MealForm: React.FC<MealFormProps> = ({
           display: flex;
           gap: 1rem;
           margin-top: 1rem;
+          align-items: center;
           
           @media (max-width: 480px) {
             flex-direction: column;
           }
         `}>
-          <button type="button" css={css`
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            background-color: #007bff;
-            color: white;
-            flex: 1;
-            
-            &:hover {
-              background-color: #0056b3;
-            }
-          `} onClick={addIngredient}>
+          <Button 
+            buttonStyle="solid"
+            color="#007bff"
+            size="regular"
+            onClick={addIngredient}
+          >
             + Add New Ingredient
-          </button>
+          </Button>
           
           <div css={css`
             display: flex;
@@ -608,38 +575,22 @@ export const MealForm: React.FC<MealFormProps> = ({
         gap: 1rem;
         margin-top: 2rem;
       `}>
-        <button type="submit" css={css`
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          background-color: #007bff;
-          color: white;
-          
-          &:hover {
-            background-color: #0056b3;
-          }
-        `}>
+        <Button 
+          buttonStyle="solid"
+          color="#007bff"
+          size="regular"
+          isSubmit={true}
+        >
           {initialData ? 'Update Meal' : 'Add Meal'}
-        </button>
-        <button type="button" css={css`
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          background-color: #6c757d;
-          color: white;
-          
-          &:hover {
-            background-color: #545b62;
-          }
-        `} onClick={onCancel}>
+        </Button>
+        <Button 
+          buttonStyle="solid"
+          color="#6c757d"
+          size="regular"
+          onClick={onCancel}
+        >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

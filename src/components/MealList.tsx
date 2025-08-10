@@ -2,6 +2,7 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import { Meal } from '../types';
+import { Button } from './Button';
 
 interface MealListProps {
   meals: Meal[];
@@ -295,38 +296,22 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                       display: flex;
                       gap: 0.5rem;
                     `}>
-                      <button css={css`
-                        padding: 0.5rem 1rem;
-                        border: none;
-                        border-radius: 4px;
-                        font-size: 0.875rem;
-                        cursor: pointer;
-                        transition: background-color 0.2s;
-                        background-color: #007bff;
-                        color: white;
-                        
-                        &:hover {
-                          background-color: #0056b3;
-                        }
-                      `} onClick={() => onEdit(meal)}>
+                      <Button
+                        buttonStyle="solid"
+                        color="#007bff"
+                        size="regular"
+                        onClick={() => onEdit(meal)}
+                      >
                         Edit
-                      </button>
-                      <button css={css`
-                        padding: 0.5rem 1rem;
-                        border: none;
-                        border-radius: 4px;
-                        font-size: 0.875rem;
-                        cursor: pointer;
-                        transition: background-color 0.2s;
-                        background-color: #dc3545;
-                        color: white;
-                        
-                        &:hover {
-                          background-color: #c82333;
-                        }
-                      `} onClick={() => meal.id && onDelete(meal.id)}>
+                      </Button>
+                      <Button
+                        buttonStyle="solid"
+                        color="#dc3545"
+                        size="regular"
+                        onClick={() => meal.id && onDelete(meal.id)}
+                      >
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   

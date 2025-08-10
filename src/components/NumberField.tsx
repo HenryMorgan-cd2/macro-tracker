@@ -31,7 +31,9 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         font-weight: 600;
         color: #666;
         margin-bottom: 0.25rem;
-      `}>{label}</label>
+      `}>
+      {label}
+      <br />
       <input
         css={css`
           width: 100%;
@@ -57,6 +59,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         min={min}
         required={required}
       />
+      </label>
     </div>
   );
 };

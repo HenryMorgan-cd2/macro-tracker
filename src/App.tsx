@@ -5,6 +5,7 @@ import { api } from './api';
 import { MealForm } from './components/MealForm';
 import { MealList } from './components/MealList';
 import { IngredientTemplateManager } from './components/IngredientTemplateManager';
+import { Button } from './components/Button';
 
 const appContainer = css`
   min-height: 100vh;
@@ -45,39 +46,7 @@ const buttonRow = css`
   flex-wrap: wrap;
 `;
 
-const addButton = css`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-  }
-`;
 
-const templateButton = css`
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(40, 167, 69, 0.4);
-  }
-`;
 
 const loadingMessage = css`
   text-align: center;
@@ -283,12 +252,22 @@ function App() {
         
         {!showForm && (
           <div css={buttonRow}>
-            <button css={addButton} onClick={() => setShowForm(true)}>
+            <Button 
+              buttonStyle="solid"
+              color="#28a745"
+              size="large"
+              onClick={() => setShowForm(true)}
+            >
               + Add New Meal
-            </button>
-            <button css={templateButton} onClick={() => setShowTemplateManager(true)}>
+            </Button>
+            <Button 
+              buttonStyle="solid"
+              color="#28a745"
+              size="large"
+              onClick={() => setShowTemplateManager(true)}
+            >
               🧾 Manage Ingredient Templates
-            </button>
+            </Button>
           </div>
         )}
 
