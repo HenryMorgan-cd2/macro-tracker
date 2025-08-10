@@ -101,7 +101,8 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
 
   const startEditing = (template: IngredientTemplate) => {
     setEditingTemplate({
-      key: template.id?.toString() || 'edit',
+      key: `edit-${template.id}`,
+      id: template.id,
       name: template.name,
       carbs: template.carbs,
       fat: template.fat,
@@ -116,205 +117,175 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
   };
 
   return (
-    <div css={css`
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    `}>
+    <div>
+      {/* Add New Template Section */}
       <div css={css`
-        background: white;
+        background: #f8f9fa;
+        padding: 1.5rem;
         border-radius: 8px;
-        padding: 2rem;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
       `}>
+        <h3 css={css`
+          margin: 0 0 1rem 0;
+          color: #333;
+        `}>Add New Template</h3>
         <div css={css`
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+          gap: 1rem;
+          align-items: end;
         `}>
-          <h2 css={css`
-            margin: 0;
-            color: #333;
-          `}>Ingredient Templates</h2>
+          <div>
+            <label css={css`
+              display: block;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+              color: #333;
+            `}>Name</label>
+            <input
+              css={css`
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 0.875rem;
+                
+                &:focus {
+                  outline: none;
+                  border-color: #007bff;
+                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                }
+              `}
+              type="text"
+              placeholder="e.g., Bell Pepper"
+              value={newTemplate.name}
+              onChange={(e) => handleNewTemplateChange('name', e.target.value)}
+            />
+          </div>
+          
+          <div>
+            <label css={css`
+              display: block;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+              color: #333;
+            `}>Macro Unit</label>
+            <select
+              css={css`
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 0.875rem;
+                
+                &:focus {
+                  outline: none;
+                  border-color: #007bff;
+                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                }
+              `}
+              value={newTemplate.macroUnit}
+              onChange={(e) => handleNewTemplateChange('macroUnit', e.target.value as 'per_unit' | 'per_100g')}
+            >
+              <option value="per_100g">Per 100g</option>
+              <option value="per_unit">Per Unit</option>
+            </select>
+          </div>
+          
+          <NumberField
+            label={`Carbs ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+            value={newTemplate.carbs}
+            onChange={(value) => handleNewTemplateChange('carbs', value)}
+            placeholder="0"
+            step={0.1}
+            min={0}
+          />
+          
+          <NumberField
+            label={`Fat ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+            value={newTemplate.fat}
+            onChange={(value) => handleNewTemplateChange('fat', value)}
+            placeholder="0"
+            step={0.1}
+            min={0}
+          />
+          
+          <NumberField
+            label={`Protein ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+            value={newTemplate.protein}
+            onChange={(value) => handleNewTemplateChange('protein', value)}
+            placeholder="0"
+            step={0.1}
+            min={0}
+          />
+          
+          <NumberField
+            label={`Calories ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+            value={newTemplate.kcal}
+            onChange={(value) => handleNewTemplateChange('kcal', value)}
+            placeholder="0"
+            step={0.1}
+            min={0}
+          />
+          
           <Button
-            buttonStyle="outline"
-            color="#666"
+            buttonStyle="solid"
+            color="#28a745"
             size="regular"
-            onClick={onClose}
-            className="text-2xl p-0 w-8 h-8 flex items-center justify-center"
+            onClick={saveNewTemplate}
           >
-            ×
+            Add Template
           </Button>
         </div>
+      </div>
 
-        {/* Add New Template Section */}
-        <div css={css`
-          background: #f8f9fa;
-          padding: 1.5rem;
-          border-radius: 8px;
-          margin-bottom: 2rem;
-        `}>
-          <h3 css={css`
-            margin: 0 0 1rem 0;
-            color: #333;
-          `}>Add New Template</h3>
+      {/* Templates List */}
+      <div>
+        <h3 css={css`
+          margin: 0 0 1rem 0;
+          color: #333;
+        `}>Existing Templates</h3>
+        
+        {templates.length === 0 ? (
           <div css={css`
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
-            gap: 1rem;
-            align-items: end;
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
           `}>
-            <div>
-              <label css={css`
-                display: block;
-                margin-bottom: 0.5rem;
-                font-weight: 600;
-                color: #333;
-              `}>Name</label>
-              <input
-                css={css`
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid #ddd;
-                  border-radius: 4px;
-                  font-size: 0.875rem;
-                  
-                  &:focus {
-                    outline: none;
-                    border-color: #007bff;
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-                  }
-                `}
-                type="text"
-                placeholder="e.g., Bell Pepper"
-                value={newTemplate.name}
-                onChange={(e) => handleNewTemplateChange('name', e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label css={css`
-                display: block;
-                margin-bottom: 0.5rem;
-                font-weight: 600;
-                color: #333;
-              `}>Macro Unit</label>
-              <select
-                css={css`
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid #ddd;
-                  border-radius: 4px;
-                  font-size: 0.875rem;
-                  background: white;
-                  
-                  &:focus {
-                    outline: none;
-                    border-color: #007bff;
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-                  }
-                `}
-                value={newTemplate.macroUnit}
-                onChange={(e) => handleNewTemplateChange('macroUnit', e.target.value as 'per_unit' | 'per_100g')}
-              >
-                <option value="per_unit">Per Unit</option>
-                <option value="per_100g">Per 100g</option>
-              </select>
-            </div>
-            
-            <NumberField
-              label={`Carbs (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-              value={newTemplate.carbs}
-              onChange={(value) => handleNewTemplateChange('carbs', value)}
-              placeholder="0"
-              step={0.1}
-              min={0}
-            />
-            
-            <NumberField
-              label={`Fat (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-              value={newTemplate.fat}
-              onChange={(value) => handleNewTemplateChange('fat', value)}
-              placeholder="0"
-              step={0.1}
-              min={0}
-            />
-            
-            <NumberField
-              label={`Protein (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-              value={newTemplate.protein}
-              onChange={(value) => handleNewTemplateChange('protein', value)}
-              placeholder="0"
-              step={0.1}
-              min={0}
-            />
-            
-            <NumberField
-              label={`Calories ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-              value={newTemplate.kcal}
-              onChange={(value) => handleNewTemplateChange('kcal', value)}
-              placeholder="0"
-              step={0.1}
-              min={0}
-            />
-            
-            <Button
-              buttonStyle="solid"
-              color="#28a745"
-              size="regular"
-              onClick={saveNewTemplate}
-            >
-              Save Template
-            </Button>
+            No ingredient templates yet. Add your first one above!
           </div>
-        </div>
-
-        {/* Existing Templates Section */}
-        <div>
-          <h3 css={css`
-            margin: 0 0 1rem 0;
-            color: #333;
-          `}>Existing Templates</h3>
-          {templates.length === 0 ? (
-            <p css={css`
-              color: #666;
-              text-align: center;
-              padding: 2rem;
-            `}>No templates yet. Create your first one above!</p>
-          ) : (
-            <div css={css`
-              display: flex;
-              flex-direction: column;
-              gap: 1rem;
-            `}>
-              {templates.map((template) => {
-                const isEditing = editingTemplate?.name === template.name;
-                
-                return (
-                  <div key={template.id || template.name} css={css`
-                    background: #f8f9fa;
-                    padding: 1rem;
-                    border-radius: 4px;
-                    border-left: 4px solid #007bff;
-                  `}>
-                    {isEditing ? (
-                      <div css={css`
-                        display: grid;
-                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
-                        gap: 1rem;
-                        align-items: center;
-                      `}>
+        ) : (
+          <div css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          `}>
+            {templates.map((template) => {
+              const isEditing = editingTemplate?.key === `edit-${template.id}`;
+              
+              return (
+                <div key={template.id} css={css`
+                  background: white;
+                  border: 1px solid #e9ecef;
+                  border-radius: 8px;
+                  padding: 1rem;
+                `}>
+                  {isEditing ? (
+                    <div css={css`
+                      display: grid;
+                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                      gap: 1rem;
+                      align-items: end;
+                    `}>
+                      <div>
+                        <label css={css`
+                          display: block;
+                          margin-bottom: 0.5rem;
+                          font-weight: 600;
+                          color: #333;
+                        `}>Name</label>
                         <input
                           css={css`
                             width: 100%;
@@ -333,7 +304,15 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           value={editingTemplate.name}
                           onChange={(e) => handleEditingTemplateChange('name', e.target.value)}
                         />
-                        
+                      </div>
+                      
+                      <div>
+                        <label css={css`
+                          display: block;
+                          margin-bottom: 0.5rem;
+                          font-weight: 600;
+                          color: #333;
+                        `}>Macro Unit</label>
                         <select
                           css={css`
                             width: 100%;
@@ -341,7 +320,6 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                             border: 1px solid #ddd;
                             border-radius: 4px;
                             font-size: 0.875rem;
-                            background: white;
                             
                             &:focus {
                               outline: none;
@@ -352,113 +330,113 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           value={editingTemplate.macroUnit}
                           onChange={(e) => handleEditingTemplateChange('macroUnit', e.target.value as 'per_unit' | 'per_100g')}
                         >
-                          <option value="per_unit">Per Unit</option>
                           <option value="per_100g">Per 100g</option>
+                          <option value="per_unit">Per Unit</option>
                         </select>
-                        
-                        <NumberField
-                          label={`Carbs ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                          value={editingTemplate.carbs}
-                          onChange={(value) => handleEditingTemplateChange('carbs', value)}
-                          placeholder="0"
-                          step={0.1}
-                          min={0}
-                        />
-                        
-                        <NumberField
-                          label={`Fat ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                          value={editingTemplate.fat}
-                          onChange={(value) => handleEditingTemplateChange('fat', value)}
-                          placeholder="0"
-                          step={0.1}
-                          min={0}
-                        />
-                        
-                        <NumberField
-                          label={`Protein ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                          value={editingTemplate.protein}
-                          onChange={(value) => handleEditingTemplateChange('protein', value)}
-                          placeholder="0"
-                          step={0.1}
-                          min={0}
-                        />
-                        
-                        <NumberField
-                          label={`Calories ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                          value={editingTemplate.kcal}
-                          onChange={(value) => handleEditingTemplateChange('kcal', value)}
-                          placeholder="0"
-                          step={0.1}
-                          min={0}
-                        />
-                        
-                        <div css={css`
-                          display: flex;
-                          gap: 0.5rem;
-                        `}>
-                          <Button
-                            buttonStyle="solid"
-                            color="#28a745"
-                            size="regular"
-                            onClick={saveEditingTemplate}
-                          >
-                            Save
-                          </Button>
-                          <Button
-                            buttonStyle="solid"
-                            color="#6c757d"
-                            size="regular"
-                            onClick={cancelEditing}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
                       </div>
-                    ) : (
+                      
+                      <NumberField
+                        label={`Carbs ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                        value={editingTemplate.carbs}
+                        onChange={(value) => handleEditingTemplateChange('carbs', value)}
+                        placeholder="0"
+                        step={0.1}
+                        min={0}
+                      />
+                      
+                      <NumberField
+                        label={`Fat ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                        value={editingTemplate.fat}
+                        onChange={(value) => handleEditingTemplateChange('fat', value)}
+                        placeholder="0"
+                        step={0.1}
+                        min={0}
+                      />
+                      
+                      <NumberField
+                        label={`Protein ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                        value={editingTemplate.protein}
+                        onChange={(value) => handleEditingTemplateChange('protein', value)}
+                        placeholder="0"
+                        step={0.1}
+                        min={0}
+                      />
+                      
+                      <NumberField
+                        label={`Calories ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                        value={editingTemplate.kcal}
+                        onChange={(value) => handleEditingTemplateChange('kcal', value)}
+                        placeholder="0"
+                        step={0.1}
+                        min={0}
+                      />
+                      
                       <div css={css`
-                        display: grid;
-                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
-                        gap: 1rem;
-                        align-items: center;
+                        display: flex;
+                        gap: 0.5rem;
                       `}>
-                        <div css={css`
-                          font-weight: 600;
-                          color: #333;
-                        `}>{template.name}</div>
-                        <div css={css`text-align: center;`}>{template.macroUnit === 'per_100g' ? 'Per 100g' : 'Per Unit'}</div>
-                        <div css={css`text-align: center;`}>{template.carbs}g</div>
-                        <div css={css`text-align: center;`}>{template.fat}g</div>
-                        <div css={css`text-align: center;`}>{template.protein}g</div>
-                        <div css={css`text-align: center;`}>{template.kcal}</div>
-                        <div css={css`
-                          display: flex;
-                          gap: 0.5rem;
-                        `}>
-                          <Button
-                            buttonStyle="solid"
-                            color="#007bff"
-                            size="regular"
-                            onClick={() => startEditing(template)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            buttonStyle="solid"
-                            color="#dc3545"
-                            size="regular"
-                            onClick={() => template.id && onDeleteTemplate(template.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          buttonStyle="solid"
+                          color="#28a745"
+                          size="regular"
+                          onClick={saveEditingTemplate}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          buttonStyle="solid"
+                          color="#6c757d"
+                          size="regular"
+                          onClick={cancelEditing}
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                    </div>
+                  ) : (
+                    <div css={css`
+                      display: grid;
+                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                      gap: 1rem;
+                      align-items: center;
+                    `}>
+                      <div css={css`
+                        font-weight: 600;
+                        color: #333;
+                      `}>{template.name}</div>
+                      <div css={css`text-align: center;`}>{template.macroUnit === 'per_100g' ? 'Per 100g' : 'Per Unit'}</div>
+                      <div css={css`text-align: center;`}>{template.carbs}g</div>
+                      <div css={css`text-align: center;`}>{template.fat}g</div>
+                      <div css={css`text-align: center;`}>{template.protein}g</div>
+                      <div css={css`text-align: center;`}>{template.kcal}</div>
+                      <div css={css`
+                        display: flex;
+                        gap: 0.5rem;
+                      `}>
+                        <Button
+                          buttonStyle="solid"
+                          color="#007bff"
+                          size="regular"
+                          onClick={() => startEditing(template)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          buttonStyle="solid"
+                          color="#dc3545"
+                          size="regular"
+                          onClick={() => template.id && onDeleteTemplate(template.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
