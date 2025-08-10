@@ -123,6 +123,24 @@ export const MealForm: React.FC<MealFormProps> = ({
     }));
   };
 
+  const addIngredientFromTemplate = (template: IngredientTemplate) => {
+    const newIngredient: EditableIngredient = {
+      key: Math.random().toString(36).substr(2, 9),
+      name: template.name,
+      quantity: 1, // Default to 1 unit
+      carbs: template.carbs,
+      fat: template.fat,
+      protein: template.protein,
+      kcal: template.kcal,
+      macroUnit: template.macroUnit,
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, newIngredient],
+    }));
+  };
+
   const removeIngredient = (key: string) => {
     setFormData(prev => ({
       ...prev,
@@ -130,44 +148,9 @@ export const MealForm: React.FC<MealFormProps> = ({
     }));
   };
 
-  const applyTemplate = (key: string, template: IngredientTemplate) => {
-    setFormData(prev => ({
-      ...prev,
-      ingredients: prev.ingredients.map(ingredient =>
-        ingredient.key === key
-          ? { 
-              ...ingredient, 
-              name: template.name,
-              carbs: template.carbs,
-              fat: template.fat,
-              protein: template.protein,
-              kcal: template.kcal,
-              macroUnit: template.macroUnit,
-            }
-          : ingredient
-      )
-    }));
-  };
 
-  // Helper function to calculate actual macros based on macro unit and quantity
-  const calculateActualMacros = (ingredient: EditableIngredient) => {
-    if (ingredient.macroUnit === 'per_100g' && ingredient.quantity && ingredient.quantity > 0) {
-      const multiplier = ingredient.quantity / 100;
-      return {
-        carbs: (ingredient.carbs || 0) * multiplier,
-        fat: (ingredient.fat || 0) * multiplier,
-        protein: (ingredient.protein || 0) * multiplier,
-        kcal: (ingredient.kcal || 0) * multiplier,
-      };
-    }
-    // For per_unit, return as is
-    return {
-      carbs: ingredient.carbs || 0,
-      fat: ingredient.fat || 0,
-      protein: ingredient.protein || 0,
-      kcal: ingredient.kcal || 0,
-    };
-  };
+
+
 
   const saveIngredientAsTemplate = (ingredient: EditableIngredient) => {
     if (ingredient.name && 
@@ -502,54 +485,13 @@ export const MealForm: React.FC<MealFormProps> = ({
                 </div>
               </div>
               
-              {/* Template Actions Row */}
+              {/* Save as Template Button */}
               <div css={css`
                 display: flex;
-                gap: 0.75rem;
-                align-items: center;
+                justify-content: flex-end;
                 padding-top: 0.75rem;
                 border-top: 1px solid #dee2e6;
               `}>
-                <div css={css`
-                  display: flex;
-                  align-items: center;
-                  gap: 0.5rem;
-                `}>
-                  <span css={css`
-                    font-size: 0.875rem;
-                    color: #666;
-                    font-weight: 500;
-                  `}>Apply template:</span>
-                  <select
-                    css={css`
-                      padding: 0.25rem 0.5rem;
-                      border: 1px solid #ddd;
-                      border-radius: 4px;
-                      font-size: 0.875rem;
-                      background: white;
-                      
-                      &:focus {
-                        outline: none;
-                        border-color: #007bff;
-                      }
-                    `}
-                    onChange={(e) => {
-                      const template = ingredientTemplates.find(t => t.name === e.target.value);
-                      if (template) {
-                        applyTemplate(ingredient.key, template);
-                      }
-                    }}
-                    value=""
-                  >
-                    <option value="">Select template...</option>
-                    {ingredientTemplates.map(template => (
-                      <option key={template.id || template.name} value={template.name}>
-                        {template.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
                 <button
                   type="button"
                   css={css`
@@ -581,24 +523,84 @@ export const MealForm: React.FC<MealFormProps> = ({
           ))}
         </div>
         
-        <button type="button" css={css`
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          background-color: #007bff;
-          color: white;
-          width: 100%;
+        <div css={css`
+          display: flex;
+          gap: 1rem;
           margin-top: 1rem;
           
-          &:hover {
-            background-color: #0056b3;
+          @media (max-width: 480px) {
+            flex-direction: column;
           }
-        `} onClick={addIngredient}>
-          + Add New Ingredient
-        </button>
+        `}>
+          <button type="button" css={css`
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            background-color: #007bff;
+            color: white;
+            flex: 1;
+            
+            &:hover {
+              background-color: #0056b3;
+            }
+          `} onClick={addIngredient}>
+            + Add New Ingredient
+          </button>
+          
+          <div css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+          `}>
+            <span css={css`
+              font-size: 0.875rem;
+              color: #666;
+              font-weight: 500;
+              text-align: center;
+            `}>Or add from template:</span>
+            <select
+              css={css`
+                padding: 0.75rem 1.5rem;
+                border: 1px solid #007bff;
+                border-radius: 4px;
+                font-size: 1rem;
+                background-color: white;
+                color: #007bff;
+                cursor: pointer;
+                transition: all 0.2s;
+                
+                &:hover {
+                  background-color: #007bff;
+                  color: white;
+                }
+                
+                &:focus {
+                  outline: none;
+                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                }
+              `}
+              onChange={(e) => {
+                const template = ingredientTemplates.find(t => t.name === e.target.value);
+                if (template) {
+                  addIngredientFromTemplate(template);
+                  e.target.value = ''; // Reset selection
+                }
+              }}
+              value=""
+            >
+              <option value="">Select template...</option>
+              {ingredientTemplates.map(template => (
+                <option key={template.id || template.name} value={template.name}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       <div css={css`
