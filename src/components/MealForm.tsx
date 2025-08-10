@@ -1,12 +1,13 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { css } from '@emotion/react';
 import { Meal, Ingredient, IngredientTemplate } from '../types';
 import { NumberField } from './NumberField';
+import { api } from '../api';
 
 interface MealFormProps {
-  meal?: Meal;
-  onSubmit: (meal: Omit<Meal, 'id'>) => void;
+  initialData?: Meal;
+  onAfterSubmit: () => void;
   onCancel: () => void;
   ingredientTemplates: IngredientTemplate[];
   onSaveAsTemplate: (template: Omit<IngredientTemplate, 'id'>) => void;
@@ -19,11 +20,12 @@ interface EditableIngredient extends Omit<Ingredient, 'carbs' | 'fat' | 'protein
   fat: number | null;
   protein: number | null;
   kcal: number | null;
+  macroUnit: 'per_unit' | 'per_100g';
 }
 
 export const MealForm: React.FC<MealFormProps> = ({ 
-  meal, 
-  onSubmit, 
+  initialData, 
+  onAfterSubmit, 
   onCancel, 
   ingredientTemplates,
   onSaveAsTemplate 
@@ -51,18 +53,41 @@ export const MealForm: React.FC<MealFormProps> = ({
   };
 
   const [formData, setFormData] = useState({
-    name: meal?.name || '',
-    datetime: formatDateTimeForInput(meal?.datetime || new Date().toISOString()),
-    ingredients: (meal?.ingredients || []).map(ingredient => ({
+    name: initialData?.name || '',
+    datetime: formatDateTimeForInput(initialData?.datetime || new Date().toISOString()),
+    ingredients: (initialData?.ingredients || []).map((ingredient: Ingredient) => ({
       ...ingredient,
       quantity: ingredient.quantity || null,
       carbs: ingredient.carbs || null,
       fat: ingredient.fat || null,
       protein: ingredient.protein || null,
       kcal: ingredient.kcal || null,
+      macroUnit: ingredient.macroUnit || 'per_unit',
       key: Math.random().toString(36).substr(2, 9)
     })) as EditableIngredient[],
   });
+
+  // Update form data when initialData prop changes (for editing)
+  useEffect(() => {
+    console.log('MealForm: useEffect triggered, initialData:', initialData);
+    if (initialData) {
+      console.log('MealForm: Setting form data for initialData:', initialData);
+      setFormData({
+        name: initialData.name,
+        datetime: formatDateTimeForInput(initialData.datetime),
+        ingredients: initialData.ingredients.map((ingredient: Ingredient) => ({
+          ...ingredient,
+          quantity: ingredient.quantity || null,
+          carbs: ingredient.carbs || null,
+          fat: ingredient.fat || null,
+          protein: ingredient.protein || null,
+          kcal: ingredient.kcal || null,
+          macroUnit: ingredient.macroUnit || 'per_unit',
+          key: Math.random().toString(36).substr(2, 9)
+        })) as EditableIngredient[],
+      });
+    }
+  }, [initialData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -89,6 +114,7 @@ export const MealForm: React.FC<MealFormProps> = ({
       fat: null,
       protein: null,
       kcal: null,
+      macroUnit: 'per_100g', // Default to per 100g as it's more common for packaged foods
     };
     
     setFormData(prev => ({
@@ -116,10 +142,31 @@ export const MealForm: React.FC<MealFormProps> = ({
               fat: template.fat,
               protein: template.protein,
               kcal: template.kcal,
+              macroUnit: template.macroUnit,
             }
           : ingredient
       )
     }));
+  };
+
+  // Helper function to calculate actual macros based on macro unit and quantity
+  const calculateActualMacros = (ingredient: EditableIngredient) => {
+    if (ingredient.macroUnit === 'per_100g' && ingredient.quantity && ingredient.quantity > 0) {
+      const multiplier = ingredient.quantity / 100;
+      return {
+        carbs: (ingredient.carbs || 0) * multiplier,
+        fat: (ingredient.fat || 0) * multiplier,
+        protein: (ingredient.protein || 0) * multiplier,
+        kcal: (ingredient.kcal || 0) * multiplier,
+      };
+    }
+    // For per_unit, return as is
+    return {
+      carbs: ingredient.carbs || 0,
+      fat: ingredient.fat || 0,
+      protein: ingredient.protein || 0,
+      kcal: ingredient.kcal || 0,
+    };
   };
 
   const saveIngredientAsTemplate = (ingredient: EditableIngredient) => {
@@ -134,25 +181,51 @@ export const MealForm: React.FC<MealFormProps> = ({
         fat: ingredient.fat,
         protein: ingredient.protein,
         kcal: ingredient.kcal,
+        macroUnit: ingredient.macroUnit,
       });
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission attempted');
+    console.log('Form data:', formData);
+    
     // Remove the key and convert null values to 0 before submitting
     const submitData = {
       ...formData,
-      ingredients: formData.ingredients.map(({ key, carbs, fat, protein, kcal, quantity, ...ingredient }) => ({
-        ...ingredient,
-        quantity: quantity || 1,
-        carbs: carbs || 0,
-        fat: fat || 0,
-        protein: protein || 0,
-        kcal: kcal || 0,
-      }))
+      ingredients: formData.ingredients.map(({ key, carbs, fat, protein, kcal, quantity, macroUnit, ...ingredient }) => {
+        return {
+          ...ingredient,
+          quantity: quantity || 1,
+          carbs: carbs || 0,
+          fat: fat || 0,
+          protein: protein || 0,
+          kcal: kcal || 0,
+          macroUnit: macroUnit,
+        };
+      })
     };
-    onSubmit(submitData);
+    
+    console.log('Submit data:', submitData);
+    
+    try {
+      if (initialData?.id) {
+        // Update existing meal
+        console.log('Updating existing meal with ID:', initialData.id);
+        await api.updateMeal(initialData.id, submitData);
+      } else {
+        // Create new meal
+        console.log('Creating new meal');
+        await api.createMeal(submitData);
+      }
+      
+      console.log('Meal saved successfully');
+      onAfterSubmit();
+    } catch (error) {
+      console.error('Error saving meal:', error);
+      // You could add error state handling here if needed
+    }
   };
 
   return (
@@ -164,7 +237,7 @@ export const MealForm: React.FC<MealFormProps> = ({
       max-width: 800px;
       margin: 0 auto;
     `} onSubmit={handleSubmit}>
-      <h2>{meal ? 'Edit Meal' : 'Add New Meal'}</h2>
+      <h2>{initialData ? 'Edit Meal' : 'Add New Meal'}</h2>
       
       <div css={css`
         margin-bottom: 1rem;
@@ -252,7 +325,7 @@ export const MealForm: React.FC<MealFormProps> = ({
             `}>
               <div css={css`
                 display: grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
                 gap: 0.75rem;
                 align-items: center;
                 margin-bottom: 0.75rem;
@@ -297,8 +370,41 @@ export const MealForm: React.FC<MealFormProps> = ({
                   min={0}
                 />
                 
+                <div css={css`
+                  display: flex;
+                  flex-direction: column;
+                `}>
+                  <label css={css`
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                    color: #333;
+                  `}>Macro Unit</label>
+                  <select
+                    css={css`
+                      width: 100%;
+                      padding: 0.5rem;
+                      border: 1px solid #ddd;
+                      border-radius: 4px;
+                      font-size: 0.875rem;
+                      background: white;
+                      
+                      &:focus {
+                        outline: none;
+                        border-color: #007bff;
+                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                      }
+                    `}
+                    value={ingredient.macroUnit}
+                    onChange={(e) => handleIngredientChange(ingredient.key, 'macroUnit', e.target.value as 'per_unit' | 'per_100g')}
+                  >
+                    <option value="per_unit">Per Unit</option>
+                    <option value="per_100g">Per 100g</option>
+                  </select>
+                </div>
+                
                 <NumberField
-                  label="Carbs (g)"
+                  label={`Carbs (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                   value={ingredient.carbs}
                   onChange={(value) => handleIngredientChange(ingredient.key, 'carbs', value)}
                   placeholder="0"
@@ -307,7 +413,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                 />
                 
                 <NumberField
-                  label="Fat (g)"
+                  label={`Fat (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                   value={ingredient.fat}
                   onChange={(value) => handleIngredientChange(ingredient.key, 'fat', value)}
                   placeholder="0"
@@ -316,7 +422,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                 />
                 
                 <NumberField
-                  label="Protein (g)"
+                  label={`Protein (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                   value={ingredient.protein}
                   onChange={(value) => handleIngredientChange(ingredient.key, 'protein', value)}
                   placeholder="0"
@@ -325,7 +431,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                 />
                 
                 <NumberField
-                  label="Calories"
+                  label={`Calories ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                   value={ingredient.kcal}
                   onChange={(value) => handleIngredientChange(ingredient.key, 'kcal', value)}
                   placeholder="0"
@@ -474,7 +580,7 @@ export const MealForm: React.FC<MealFormProps> = ({
             background-color: #0056b3;
           }
         `}>
-          {meal ? 'Update Meal' : 'Add Meal'}
+          {initialData ? 'Update Meal' : 'Add Meal'}
         </button>
         <button type="button" css={css`
           padding: 0.75rem 1.5rem;

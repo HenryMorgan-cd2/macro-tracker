@@ -24,12 +24,31 @@ interface DayGroup {
 export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) => {
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
-      (totals, ingredient) => ({
-        carbs: totals.carbs + (ingredient.carbs * ingredient.quantity),
-        fat: totals.fat + (ingredient.fat * ingredient.quantity),
-        protein: totals.protein + (ingredient.protein * ingredient.quantity),
-        kcal: totals.kcal + (ingredient.kcal * ingredient.quantity),
-      }),
+      (totals, ingredient) => {
+        let actualCarbs, actualFat, actualProtein, actualKcal;
+        
+        if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+          // For per_100g, scale the macros based on quantity
+          const multiplier = ingredient.quantity / 100;
+          actualCarbs = ingredient.carbs * multiplier;
+          actualFat = ingredient.fat * multiplier;
+          actualProtein = ingredient.protein * multiplier;
+          actualKcal = ingredient.kcal * multiplier;
+        } else {
+          // For per_unit, use as-is
+          actualCarbs = ingredient.carbs;
+          actualFat = ingredient.fat;
+          actualProtein = ingredient.protein;
+          actualKcal = ingredient.kcal;
+        }
+        
+        return {
+          carbs: totals.carbs + actualCarbs,
+          fat: totals.fat + actualFat,
+          protein: totals.protein + actualProtein,
+          kcal: totals.kcal + actualKcal,
+        };
+      },
       { carbs: 0, fat: 0, protein: 0, kcal: 0 }
     );
   };
@@ -333,7 +352,12 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                             color: #333;
                             margin-bottom: 0.5rem;
                           `}>
-                            {ingredient.quantity > 1 ? `${ingredient.quantity} × ` : ''}{ingredient.name}
+                            {ingredient.name} {ingredient.macroUnit === 'per_100g' 
+                              ? `(${ingredient.quantity}g)` 
+                              : ingredient.quantity > 1 
+                                ? ` x ${ingredient.quantity}` 
+                                : ''
+                            }
                           </div>
                           <div css={css`
                             display: grid;
@@ -355,7 +379,12 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Carbs</span>
-                              <span>{(ingredient.carbs * ingredient.quantity).toFixed(1)}g</span>
+                              <span>{(() => {
+                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                  return (ingredient.carbs * ingredient.quantity / 100).toFixed(1);
+                                }
+                                return (ingredient.carbs * ingredient.quantity).toFixed(1);
+                              })()}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -371,7 +400,12 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Fat</span>
-                              <span>{(ingredient.fat * ingredient.quantity).toFixed(1)}g</span>
+                              <span>{(() => {
+                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                  return (ingredient.fat * ingredient.quantity / 100).toFixed(1);
+                                }
+                                return (ingredient.fat * ingredient.quantity).toFixed(1);
+                              })()}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -387,7 +421,12 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>Protein</span>
-                              <span>{(ingredient.protein * ingredient.quantity).toFixed(1)}g</span>
+                              <span>{(() => {
+                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                  return (ingredient.protein * ingredient.quantity / 100).toFixed(1);
+                                }
+                                return (ingredient.protein * ingredient.quantity).toFixed(1);
+                              })()}g</span>
                             </div>
                             <div css={css`
                               text-align: center;
@@ -403,7 +442,12 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               }
                             `}>
                               <span>kcal</span>
-                              <span>{(ingredient.kcal * ingredient.quantity).toFixed(0)}</span>
+                              <span>{(() => {
+                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                  return (ingredient.kcal * ingredient.quantity / 100).toFixed(0);
+                                }
+                                return (ingredient.kcal * ingredient.quantity).toFixed(0);
+                              })()}</span>
                             </div>
                           </div>
                           {ingredient.quantity > 1 && (
@@ -413,7 +457,10 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                               color: #666;
                               text-align: center;
                             `}>
-                              Per unit: {ingredient.carbs}g carbs, {ingredient.fat}g fat, {ingredient.protein}g protein, {ingredient.kcal} kcal
+                              {ingredient.macroUnit === 'per_100g' 
+                                ? `Per 100g: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
+                                : `Per unit: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
+                              }
                             </div>
                           )}
                         </div>

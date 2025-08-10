@@ -6,6 +6,7 @@ export interface Ingredient {
   fat: number;
   protein: number;
   kcal: number;
+  macroUnit: 'per_unit' | 'per_100g';
 }
 
 export interface IngredientTemplate {
@@ -15,6 +16,7 @@ export interface IngredientTemplate {
   fat: number;
   protein: number;
   kcal: number;
+  macroUnit: 'per_unit' | 'per_100g';
 }
 
 export interface Meal {

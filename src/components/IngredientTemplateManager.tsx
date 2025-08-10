@@ -18,6 +18,7 @@ interface EditableTemplate extends Omit<IngredientTemplate, 'carbs' | 'fat' | 'p
   fat: number | null;
   protein: number | null;
   kcal: number | null;
+  macroUnit: 'per_unit' | 'per_100g';
 }
 
 export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps> = ({
@@ -35,6 +36,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
     fat: null,
     protein: null,
     kcal: null,
+    macroUnit: 'per_unit',
   });
 
   const handleNewTemplateChange = (field: keyof EditableTemplate, value: string | number | null) => {
@@ -59,6 +61,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         fat: newTemplate.fat,
         protein: newTemplate.protein,
         kcal: newTemplate.kcal,
+        macroUnit: newTemplate.macroUnit,
       });
       setNewTemplate({
         key: 'new',
@@ -67,6 +70,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         fat: null,
         protein: null,
         kcal: null,
+        macroUnit: 'per_unit',
       });
     }
   };
@@ -87,6 +91,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
           fat: editingTemplate.fat,
           protein: editingTemplate.protein,
           kcal: editingTemplate.kcal,
+          macroUnit: editingTemplate.macroUnit,
         });
         setEditingTemplate(null);
       }
@@ -101,6 +106,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
       fat: template.fat,
       protein: template.protein,
       kcal: template.kcal,
+      macroUnit: template.macroUnit,
     });
   };
 
@@ -168,7 +174,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
           `}>Add New Template</h3>
           <div css={css`
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
             gap: 1rem;
             align-items: end;
           `}>
@@ -200,8 +206,38 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
               />
             </div>
             
+            <div>
+              <label css={css`
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #333;
+              `}>Macro Unit</label>
+              <select
+                css={css`
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                  font-size: 0.875rem;
+                  background: white;
+                  
+                  &:focus {
+                    outline: none;
+                    border-color: #007bff;
+                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                  }
+                `}
+                value={newTemplate.macroUnit}
+                onChange={(e) => handleNewTemplateChange('macroUnit', e.target.value as 'per_unit' | 'per_100g')}
+              >
+                <option value="per_unit">Per Unit</option>
+                <option value="per_100g">Per 100g</option>
+              </select>
+            </div>
+            
             <NumberField
-              label="Carbs (g)"
+              label={`Carbs (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
               value={newTemplate.carbs}
               onChange={(value) => handleNewTemplateChange('carbs', value)}
               placeholder="0"
@@ -210,7 +246,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
             />
             
             <NumberField
-              label="Fat (g)"
+              label={`Fat (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
               value={newTemplate.fat}
               onChange={(value) => handleNewTemplateChange('fat', value)}
               placeholder="0"
@@ -219,7 +255,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
             />
             
             <NumberField
-              label="Protein (g)"
+              label={`Protein (g) ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
               value={newTemplate.protein}
               onChange={(value) => handleNewTemplateChange('protein', value)}
               placeholder="0"
@@ -228,7 +264,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
             />
             
             <NumberField
-              label="Calories"
+              label={`Calories ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
               value={newTemplate.kcal}
               onChange={(value) => handleNewTemplateChange('kcal', value)}
               placeholder="0"
@@ -290,7 +326,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                     {isEditing ? (
                       <div css={css`
                         display: grid;
-                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
                         gap: 1rem;
                         align-items: center;
                       `}>
@@ -313,8 +349,30 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           onChange={(e) => handleEditingTemplateChange('name', e.target.value)}
                         />
                         
+                        <select
+                          css={css`
+                            width: 100%;
+                            padding: 0.5rem;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                            font-size: 0.875rem;
+                            background: white;
+                            
+                            &:focus {
+                              outline: none;
+                              border-color: #007bff;
+                              box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                            }
+                          `}
+                          value={editingTemplate.macroUnit}
+                          onChange={(e) => handleEditingTemplateChange('macroUnit', e.target.value as 'per_unit' | 'per_100g')}
+                        >
+                          <option value="per_unit">Per Unit</option>
+                          <option value="per_100g">Per 100g</option>
+                        </select>
+                        
                         <NumberField
-                          label=""
+                          label={`Carbs ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                           value={editingTemplate.carbs}
                           onChange={(value) => handleEditingTemplateChange('carbs', value)}
                           placeholder="0"
@@ -323,7 +381,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                         />
                         
                         <NumberField
-                          label=""
+                          label={`Fat ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                           value={editingTemplate.fat}
                           onChange={(value) => handleEditingTemplateChange('fat', value)}
                           placeholder="0"
@@ -332,7 +390,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                         />
                         
                         <NumberField
-                          label=""
+                          label={`Protein ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                           value={editingTemplate.protein}
                           onChange={(value) => handleEditingTemplateChange('protein', value)}
                           placeholder="0"
@@ -341,7 +399,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                         />
                         
                         <NumberField
-                          label=""
+                          label={`Calories ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
                           value={editingTemplate.kcal}
                           onChange={(value) => handleEditingTemplateChange('kcal', value)}
                           placeholder="0"
@@ -398,7 +456,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                     ) : (
                       <div css={css`
                         display: grid;
-                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+                        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
                         gap: 1rem;
                         align-items: center;
                       `}>
@@ -406,6 +464,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           font-weight: 600;
                           color: #333;
                         `}>{template.name}</div>
+                        <div css={css`text-align: center;`}>{template.macroUnit === 'per_100g' ? 'Per 100g' : 'Per Unit'}</div>
                         <div css={css`text-align: center;`}>{template.carbs}g</div>
                         <div css={css`text-align: center;`}>{template.fat}g</div>
                         <div css={css`text-align: center;`}>{template.protein}g</div>

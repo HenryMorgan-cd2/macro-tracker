@@ -139,6 +139,7 @@ function App() {
             fat: 0.2,
             protein: 1.0,
             kcal: 31,
+            macroUnit: 'per_100g',
           },
           {
             id: 2,
@@ -147,6 +148,7 @@ function App() {
             fat: 3.6,
             protein: 31.0,
             kcal: 165,
+            macroUnit: 'per_100g',
           },
           {
             id: 3,
@@ -155,6 +157,7 @@ function App() {
             fat: 0.9,
             protein: 2.9,
             kcal: 111,
+            macroUnit: 'per_100g',
           },
           {
             id: 4,
@@ -163,6 +166,7 @@ function App() {
             fat: 0.4,
             protein: 2.8,
             kcal: 34,
+            macroUnit: 'per_100g',
           },
           {
             id: 5,
@@ -171,6 +175,7 @@ function App() {
             fat: 13.0,
             protein: 20.0,
             kcal: 208,
+            macroUnit: 'per_100g',
           },
           {
             id: 6,
@@ -179,6 +184,7 @@ function App() {
             fat: 0.1,
             protein: 1.6,
             kcal: 86,
+            macroUnit: 'per_100g',
           },
           {
             id: 7,
@@ -187,6 +193,7 @@ function App() {
             fat: 0.4,
             protein: 2.9,
             kcal: 23,
+            macroUnit: 'per_100g',
           },
           {
             id: 8,
@@ -195,6 +202,7 @@ function App() {
             fat: 5.0,
             protein: 6.3,
             kcal: 74,
+            macroUnit: 'per_unit',
           },
         ];
         
@@ -206,30 +214,9 @@ function App() {
     }
   };
 
-  const handleAddMeal = async (mealData: Omit<Meal, 'id'>) => {
-    try {
-      setError(null);
-      const newMeal = await api.createMeal(mealData);
-      setMeals(prev => [...prev, newMeal]);
-      setShowForm(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add meal');
-    }
-  };
 
-  const handleUpdateMeal = async (mealData: Omit<Meal, 'id'>) => {
-    if (!editingMeal?.id) return;
-    
-    try {
-      setError(null);
-      const updatedMeal = await api.updateMeal(editingMeal.id, mealData);
-      setMeals(prev => prev.map(meal => meal.id === editingMeal.id ? updatedMeal : meal));
-      setEditingMeal(null);
-      setShowForm(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update meal');
-    }
-  };
+
+
 
   const handleDeleteMeal = async (id: number) => {
     try {
@@ -251,13 +238,7 @@ function App() {
     setEditingMeal(null);
   };
 
-  const handleSubmitForm = (mealData: Omit<Meal, 'id'>) => {
-    if (editingMeal) {
-      handleUpdateMeal(mealData);
-    } else {
-      handleAddMeal(mealData);
-    }
-  };
+
 
   const handleSaveIngredientTemplate = (template: Omit<IngredientTemplate, 'id'>) => {
     const newTemplate: IngredientTemplate = {
@@ -313,8 +294,12 @@ function App() {
 
         {showForm && (
           <MealForm
-            meal={editingMeal || undefined}
-            onSubmit={handleSubmitForm}
+            initialData={editingMeal || undefined}
+            onAfterSubmit={() => {
+              loadMeals();
+              setShowForm(false);
+              setEditingMeal(null);
+            }}
             onCancel={handleCancelForm}
             ingredientTemplates={ingredientTemplates}
             onSaveAsTemplate={handleSaveIngredientTemplate}
