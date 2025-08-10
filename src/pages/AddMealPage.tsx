@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { IngredientTemplate } from '../types';
 import { MealForm } from '../components/MealForm';
 import { PageWrapper } from '../components/PageWrapper';
@@ -10,6 +10,10 @@ export function AddMealPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Extract duplicate meal data from navigation state if it exists
+  const duplicateMeal = location.state?.duplicateMeal;
 
   useEffect(() => {
     loadIngredientTemplates();
@@ -65,9 +69,12 @@ export function AddMealPage() {
   }
 
   return (
-    <PageWrapper title="Add New Meal" subtitle="Create a new meal entry">
+    <PageWrapper 
+      title={duplicateMeal ? "Duplicate Meal" : "Add New Meal"} 
+      subtitle={duplicateMeal ? `Duplicating "${duplicateMeal.name}"` : "Create a new meal entry"}
+    >
       <MealForm
-        initialData={undefined}
+        initialData={duplicateMeal}
         onAfterSubmit={handleAfterSubmit}
         onCancel={handleCancel}
         ingredientTemplates={ingredientTemplates}

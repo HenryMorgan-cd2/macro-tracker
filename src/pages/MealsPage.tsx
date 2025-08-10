@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
-import { Meal, IngredientTemplate } from '../types';
+import { Meal } from '../types';
 import { api } from '../api';
 import { MealList } from '../components/MealList';
-import { Button } from '../components/Button';
 import { PageWrapper } from '../components/PageWrapper';
 
 const loadingMessage = css`
@@ -60,6 +59,20 @@ export function MealsPage() {
     navigate(`/edit-meal/${meal.id}`);
   };
 
+  const handleDuplicateMeal = (meal: Meal) => {
+    // Navigate to add meal page with the meal data as initial data
+    // We'll use URL state to pass the data
+    navigate('/add-meal', { 
+      state: { 
+        duplicateMeal: {
+          ...meal,
+          id: undefined, // Remove the ID so it creates a new meal
+          datetime: new Date().toISOString() // Set to current time
+        }
+      } 
+    });
+  };
+
   return (
     <PageWrapper title="Meals" subtitle="Track your daily meals and nutritional intake">
       {error && <div css={errorMessage}>{error}</div>}
@@ -71,6 +84,7 @@ export function MealsPage() {
           meals={meals}
           onEdit={handleEditMeal}
           onDelete={handleDeleteMeal}
+          onDuplicate={handleDuplicateMeal}
         />
       )}
     </PageWrapper>

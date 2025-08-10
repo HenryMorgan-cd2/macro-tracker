@@ -8,6 +8,7 @@ interface MealListProps {
   meals: Meal[];
   onEdit: (meal: Meal) => void;
   onDelete: (id: number) => void;
+  onDuplicate: (meal: Meal) => void;
 }
 
 interface DayGroup {
@@ -22,7 +23,7 @@ interface DayGroup {
   };
 }
 
-export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) => {
+export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onDuplicate }) => {
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
       (totals, ingredient) => {
@@ -303,6 +304,14 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete }) =
                         onClick={() => onEdit(meal)}
                       >
                         Edit
+                      </Button>
+                      <Button
+                        buttonStyle="solid"
+                        color="#28a745"
+                        size="regular"
+                        onClick={() => onDuplicate(meal)}
+                      >
+                        Duplicate
                       </Button>
                       <Button
                         buttonStyle="solid"

@@ -232,7 +232,7 @@ export const MealForm: React.FC<MealFormProps> = ({
         margin: 0 0.25rem;
       }
     `} onSubmit={handleSubmit}>
-      <h2>{initialData ? 'Edit Meal' : 'Add New Meal'}</h2>
+      <h2>{initialData?.id ? 'Edit Meal' : 'Add New Meal'}</h2>
       
       <div css={css`
         margin-bottom: 1rem;
