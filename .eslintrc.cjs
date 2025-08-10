@@ -28,7 +28,7 @@ module.exports = {
   },
   rules: {
     // Basic rules only
-    'no-console': 'warn',
+    'no-console': 0,
     'no-debugger': 'error',
     'no-unused-vars': 'off', // Using TypeScript version instead
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
