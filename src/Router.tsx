@@ -4,6 +4,7 @@ import { AddMealPage } from './pages/AddMealPage';
 import { EditMealPage } from './pages/EditMealPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { MealTemplatesPage } from './pages/MealTemplatesPage';
+import { DailyTargetsPage } from './pages/DailyTargetsPage';
 
 export function Router() {
   return (
@@ -13,6 +14,7 @@ export function Router() {
       <Route path="/edit-meal/:id" element={<EditMealPage />} />
       <Route path="/templates" element={<TemplatesPage />} />
       <Route path="/meal-templates" element={<MealTemplatesPage />} />
+      <Route path="/daily-targets" element={<DailyTargetsPage />} />
     </Routes>
   );
 }

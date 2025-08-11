@@ -103,6 +103,13 @@ export function SiteWrapper({ children }: SiteWrapperProps) {
             >
               Meal Templates
             </Link>
+            <Link 
+              to="/daily-targets" 
+              css={navLink} 
+              className={location.pathname === '/daily-targets' ? 'active' : ''}
+            >
+              Daily Targets
+            </Link>
           </div>
           
           <Button

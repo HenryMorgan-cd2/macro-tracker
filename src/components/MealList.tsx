@@ -1,11 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import { css } from '@emotion/react';
-import { Meal } from '../types';
+import { Meal, DailyTargets } from '../types';
 import { Button } from './Button';
+import { calculateMacroProgress, getProgressColor, getProgressText, getProgressBarWidth, shouldShowOverflowIndicator } from '../utils/macroProgress';
 
 interface MealListProps {
   meals: Meal[];
+  dailyTargets?: DailyTargets | null;
   onEdit: (meal: Meal) => void;
   onDelete: (id: number) => void;
   onDuplicate: (meal: Meal) => void;
@@ -23,7 +25,13 @@ interface DayGroup {
   };
 }
 
-export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onDuplicate }) => {
+export const MealList: React.FC<MealListProps> = ({ 
+  meals, 
+  dailyTargets, 
+  onEdit, 
+  onDelete, 
+  onDuplicate 
+}) => {
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
       (totals, ingredient) => {
@@ -116,6 +124,116 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
     );
   };
 
+  const renderMacroCard = (macro: keyof DailyTargets, label: string, value: number, unit: string, targets?: DailyTargets[keyof DailyTargets]) => {
+    // Type guard to ensure targets has the correct structure
+    const hasTargets = targets && typeof targets === 'object' && 'min' in targets && 'max' in targets;
+    
+    // Convert to the expected type for progress calculation
+    const progressTargets = hasTargets ? { min: targets.min, max: targets.max } : undefined;
+    const progress = calculateMacroProgress(value, progressTargets);
+    const progressColor = getProgressColor(progress.status);
+    const progressText = getProgressText(progress.status, label);
+    
+    return (
+      <div css={css`
+        text-align: center;
+        background: rgba(255, 255, 255, 0.25);
+        padding: clamp(0.75rem, 3vw, 1rem);
+        border-radius: var(--border-radius);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      `}>
+        <span css={css`
+          display: block;
+          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+          opacity: 1;
+          margin-bottom: 0.25rem;
+          font-weight: 700;
+          color: #ffffff;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        `}>{label}</span>
+        
+        <span css={css`
+          display: block;
+          font-size: clamp(1rem, 3.5vw, 1.25rem);
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+          color: #ffffff;
+        `}>
+          {macro === 'kcal' ? value.toFixed(0) : value.toFixed(1)}{unit}
+        </span>
+        
+        {hasTargets && (
+          <div css={css`
+            font-size: clamp(0.65rem, 2vw, 0.75rem);
+            opacity: 1;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+          `}>
+            {targets.min !== undefined && targets.max !== undefined ? (
+              `Target: ${targets.min}-${targets.max}${unit}`
+            ) : targets.min !== undefined ? (
+              `Min: ${targets.min}${unit}`
+            ) : targets.max !== undefined ? (
+              `Max: ${targets.max}${unit}`
+            ) : null}
+          </div>
+        )}
+        
+        {progress.status !== 'no_target' && (
+          <div css={css`
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+          `}>
+            <div css={css`
+              height: 100%;
+              width: ${getProgressBarWidth(progress.percentage)}%;
+              background: ${progressColor};
+              transition: width 0.3s ease;
+            `} />
+            {shouldShowOverflowIndicator(progress.percentage) && (
+              <div css={css`
+                position: absolute;
+                right: 0;
+                top: 0;
+                height: 100%;
+                width: 2px;
+                background: ${progressColor};
+                opacity: 0.8;
+              `} />
+            )}
+          </div>
+        )}
+        
+        <div css={css`
+          font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+          opacity: 1;
+          color: ${progressColor};
+          font-weight: 700;
+          text-align: center;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        `}>
+          {progressText}
+        </div>
+      </div>
+    );
+  };
+
   const dayGroups = groupMealsByDay(meals);
 
   if (meals.length === 0) {
@@ -162,98 +280,14 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
             `}>{dayGroup.dateLabel}</h2>
             <div css={css`
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+              grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
               gap: var(--grid-gap);
               margin-top: 1rem;
             `}>
-              <div css={css`
-                text-align: center;
-                background: rgba(255, 255, 255, 0.2);
-                padding: clamp(0.75rem, 3vw, 1rem);
-                border-radius: var(--border-radius);
-                
-                span:first-child {
-                  display: block;
-                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                  opacity: 0.9;
-                  margin-bottom: 0.25rem;
-                }
-                
-                span:last-child {
-                  display: block;
-                  font-size: clamp(1rem, 3.5vw, 1.25rem);
-                  font-weight: 700;
-                }
-              `}>
-                <span>Total Calories</span>
-                <span>{dayGroup.totals.kcal.toFixed(0)}</span>
-              </div>
-              <div css={css`
-                text-align: center;
-                background: rgba(255, 255, 255, 0.2);
-                padding: clamp(0.75rem, 3vw, 1rem);
-                border-radius: var(--border-radius);
-                
-                span:first-child {
-                  display: block;
-                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                  opacity: 0.9;
-                  margin-bottom: 0.25rem;
-                }
-                
-                span:last-child {
-                  display: block;
-                  font-size: clamp(1rem, 3.5vw, 1.25rem);
-                  font-weight: 700;
-                }
-              `}>
-                <span>Protein</span>
-                <span>{dayGroup.totals.protein.toFixed(1)}g</span>
-              </div>
-              <div css={css`
-                text-align: center;
-                background: rgba(255, 255, 255, 0.2);
-                padding: clamp(0.75rem, 3vw, 1rem);
-                border-radius: var(--border-radius);
-                
-                span:first-child {
-                  display: block;
-                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                  opacity: 0.9;
-                  margin-bottom: 0.25rem;
-                }
-                
-                span:last-child {
-                  display: block;
-                  font-size: clamp(1rem, 3.5vw, 1.25rem);
-                  font-weight: 700;
-                }
-              `}>
-                <span>Carbs</span>
-                <span>{dayGroup.totals.carbs.toFixed(1)}g</span>
-              </div>
-              <div css={css`
-                text-align: center;
-                background: rgba(255, 255, 255, 0.2);
-                padding: clamp(0.75rem, 3vw, 1rem);
-                border-radius: var(--border-radius);
-                
-                span:first-child {
-                  display: block;
-                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                  opacity: 0.9;
-                  margin-bottom: 0.25rem;
-                }
-                
-                span:last-child {
-                  display: block;
-                  font-size: clamp(1rem, 3.5vw, 1.25rem);
-                  font-weight: 700;
-                }
-              `}>
-                <span>Fat</span>
-                <span>{dayGroup.totals.fat.toFixed(1)}g</span>
-              </div>
+              {renderMacroCard('kcal', 'Total Calories', dayGroup.totals.kcal, 'kcal', dailyTargets?.kcal)}
+              {renderMacroCard('protein', 'Protein', dayGroup.totals.protein, 'g', dailyTargets?.protein)}
+              {renderMacroCard('carbs', 'Carbs', dayGroup.totals.carbs, 'g', dailyTargets?.carbs)}
+              {renderMacroCard('fat', 'Fat', dayGroup.totals.fat, 'g', dailyTargets?.fat)}
             </div>
           </div>
           

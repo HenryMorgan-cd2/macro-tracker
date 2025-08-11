@@ -1,4 +1,4 @@
-import { Meal, Ingredient, IngredientTemplate, MealTemplate } from './types';
+import { Meal, Ingredient, IngredientTemplate, MealTemplate, DailyTargets } from './types';
 
 const API_BASE = '/api';
 
@@ -132,5 +132,44 @@ export const api = {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete meal template');
+  },
+
+  // Daily Targets
+  async getDailyTargets(): Promise<DailyTargets> {
+    const response = await fetch(`${API_BASE}/daily-targets`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Daily targets not found');
+      }
+      throw new Error('Failed to fetch daily targets');
+    }
+    return response.json();
+  },
+
+  async createDailyTargets(targets: Omit<DailyTargets, 'id' | 'createdAt' | 'updatedAt'>): Promise<DailyTargets> {
+    const response = await fetch(`${API_BASE}/daily-targets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(targets),
+    });
+    if (!response.ok) throw new Error('Failed to create daily targets');
+    return response.json();
+  },
+
+  async updateDailyTargets(id: number, targets: Omit<DailyTargets, 'id' | 'createdAt' | 'updatedAt'>): Promise<DailyTargets> {
+    const response = await fetch(`${API_BASE}/daily-targets/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(targets),
+    });
+    if (!response.ok) throw new Error('Failed to update daily targets');
+    return response.json();
+  },
+
+  async deleteDailyTargets(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE}/daily-targets/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete daily targets');
   },
 };

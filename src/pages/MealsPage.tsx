@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { css } from '@emotion/react';
-import { Meal } from '../types';
+import { Meal, DailyTargets } from '../types';
 import { api } from '../api';
 import { MealList } from '../components/MealList';
 import { PageWrapper } from '../components/PageWrapper';
@@ -24,22 +24,40 @@ const errorMessage = css`
 
 export function MealsPage() {
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [dailyTargets, setDailyTargets] = useState<DailyTargets | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadMeals();
+    loadData();
   }, []);
 
-  const loadMeals = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const mealsData = await api.getMeals();
-      setMeals(mealsData);
+      
+      // Load meals and daily targets in parallel
+      const [mealsData, targetsData] = await Promise.allSettled([
+        api.getMeals(),
+        api.getDailyTargets()
+      ]);
+      
+      if (mealsData.status === 'fulfilled') {
+        setMeals(mealsData.value);
+      } else {
+        throw new Error('Failed to load meals');
+      }
+      
+      if (targetsData.status === 'fulfilled') {
+        setDailyTargets(targetsData.value);
+      } else {
+        // If targets fail to load, that's okay - just set to null
+        setDailyTargets(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load meals');
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -82,6 +100,7 @@ export function MealsPage() {
       ) : (
         <MealList
           meals={meals}
+          dailyTargets={dailyTargets}
           onEdit={handleEditMeal}
           onDelete={handleDeleteMeal}
           onDuplicate={handleDuplicateMeal}

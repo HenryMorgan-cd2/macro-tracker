@@ -42,3 +42,33 @@ export interface MealFormData {
   datetime: string;
   ingredients: Ingredient[];
 }
+
+export interface DailyTargets {
+  id?: number;
+  carbs?: {
+    min?: number;
+    max?: number;
+  };
+  fat?: {
+    min?: number;
+    max?: number;
+  };
+  protein?: {
+    min?: number;
+    max?: number;
+  };
+  kcal?: {
+    min?: number;
+    max?: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MacroProgress {
+  current: number;
+  min?: number;
+  max?: number;
+  percentage: number;
+  status: 'below_min' | 'above_max' | 'within_range' | 'no_target';
+}

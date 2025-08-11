@@ -65,7 +65,45 @@ type MealTemplateIngredient struct {
 	Quantity float64 `json:"quantity"`
 }
 
+type DailyTargets struct {
+	ID        int     `json:"id,omitempty"`
+	Carbs     *MacroTarget `json:"carbs,omitempty"`
+	Fat       *MacroTarget `json:"fat,omitempty"`
+	Protein   *MacroTarget `json:"protein,omitempty"`
+	Kcal      *MacroTarget `json:"kcal,omitempty"`
+	CreatedAt string  `json:"createdAt,omitempty"`
+	UpdatedAt string  `json:"updatedAt,omitempty"`
+}
+
+type MacroTarget struct {
+	Min *float64 `json:"min,omitempty"`
+	Max *float64 `json:"max,omitempty"`
+}
+
 var db *sql.DB
+
+// Helper function to safely get float value or nil
+func getFloatOrNil(f *float64) interface{} {
+	if f == nil {
+		return nil
+	}
+	return *f
+}
+
+// Helper function to safely get float value from MacroTarget or nil
+func getMacroTargetFloat(mt *MacroTarget, field string) interface{} {
+	if mt == nil {
+		return nil
+	}
+	switch field {
+	case "min":
+		return getFloatOrNil(mt.Min)
+	case "max":
+		return getFloatOrNil(mt.Max)
+	default:
+		return nil
+	}
+}
 
 func main() {
 	// Load environment variables
@@ -142,6 +180,10 @@ func main() {
 		api.POST("/meal-templates", createMealTemplate)
 		api.PUT("/meal-templates/:id", updateMealTemplate)
 		api.DELETE("/meal-templates/:id", deleteMealTemplate)
+		api.GET("/daily-targets", getDailyTargets)
+		api.POST("/daily-targets", createDailyTargets)
+		api.PUT("/daily-targets/:id", updateDailyTargets)
+		api.DELETE("/daily-targets/:id", deleteDailyTargets)
 	}
 
 	port := os.Getenv("PORT")
@@ -251,6 +293,26 @@ func initDB() error {
 				ALTER TABLE ingredient_templates ADD CONSTRAINT check_ingredient_templates_macro_unit CHECK (macro_unit IN ('per_unit', 'per_100g'));
 			END IF;
 		END $$;
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create daily_targets table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS daily_targets (
+			id SERIAL PRIMARY KEY,
+			carbs_min DECIMAL(8,2),
+			carbs_max DECIMAL(8,2),
+			fat_min DECIMAL(8,2),
+			fat_max DECIMAL(8,2),
+			protein_min DECIMAL(8,2),
+			protein_max DECIMAL(8,2),
+			kcal_min DECIMAL(8,2),
+			kcal_max DECIMAL(8,2),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)
 	`)
 	if err != nil {
 		return err
@@ -914,4 +976,148 @@ func deleteMealTemplate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Meal template deleted successfully"})
+}
+
+// Daily Targets handlers
+func getDailyTargets(c *gin.Context) {
+	rows, err := db.Query("SELECT id, carbs_min, carbs_max, fat_min, fat_max, protein_min, protein_max, kcal_min, kcal_max, created_at, updated_at FROM daily_targets ORDER BY id DESC LIMIT 1")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Daily targets not found"})
+		return
+	}
+
+	var targets DailyTargets
+	var carbsMin, carbsMax, fatMin, fatMax, proteinMin, proteinMax, kcalMin, kcalMax sql.NullFloat64
+	var createdAt, updatedAt sql.NullString
+
+	err = rows.Scan(&targets.ID, &carbsMin, &carbsMax, &fatMin, &fatMax, &proteinMin, &proteinMax, &kcalMin, &kcalMax, &createdAt, &updatedAt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Convert to MacroTarget structs
+	if carbsMin.Valid || carbsMax.Valid {
+		var min, max *float64
+		if carbsMin.Valid {
+			min = &carbsMin.Float64
+		}
+		if carbsMax.Valid {
+			max = &carbsMax.Float64
+		}
+		targets.Carbs = &MacroTarget{Min: min, Max: max}
+	}
+	if fatMin.Valid || fatMax.Valid {
+		var min, max *float64
+		if fatMin.Valid {
+			min = &fatMin.Float64
+		}
+		if fatMax.Valid {
+			max = &fatMax.Float64
+		}
+		targets.Fat = &MacroTarget{Min: min, Max: max}
+	}
+	if proteinMin.Valid || proteinMax.Valid {
+		var min, max *float64
+		if proteinMin.Valid {
+			min = &proteinMin.Float64
+		}
+		if proteinMax.Valid {
+			max = &proteinMax.Float64
+		}
+		targets.Protein = &MacroTarget{Min: min, Max: max}
+	}
+	if kcalMin.Valid || kcalMax.Valid {
+		var min, max *float64
+		if kcalMin.Valid {
+			min = &kcalMin.Float64
+		}
+		if kcalMax.Valid {
+			max = &kcalMax.Float64
+		}
+		targets.Kcal = &MacroTarget{Min: min, Max: max}
+	}
+
+	if createdAt.Valid {
+		targets.CreatedAt = createdAt.String
+	}
+	if updatedAt.Valid {
+		targets.UpdatedAt = updatedAt.String
+	}
+
+	c.JSON(http.StatusOK, targets)
+}
+
+func createDailyTargets(c *gin.Context) {
+	var targets DailyTargets
+	if err := c.ShouldBindJSON(&targets); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var id int
+	err := db.QueryRow(`
+		INSERT INTO daily_targets (carbs_min, carbs_max, fat_min, fat_max, protein_min, protein_max, kcal_min, kcal_max) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		RETURNING id
+	`, 
+		getMacroTargetFloat(targets.Carbs, "min"), getMacroTargetFloat(targets.Carbs, "max"), 
+		getMacroTargetFloat(targets.Fat, "min"), getMacroTargetFloat(targets.Fat, "max"), 
+		getMacroTargetFloat(targets.Protein, "min"), getMacroTargetFloat(targets.Protein, "max"), 
+		getMacroTargetFloat(targets.Kcal, "min"), getMacroTargetFloat(targets.Kcal, "max"),
+	).Scan(&id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	targets.ID = id
+	c.JSON(http.StatusCreated, targets)
+}
+
+func updateDailyTargets(c *gin.Context) {
+	id := c.Param("id")
+	var targets DailyTargets
+	if err := c.ShouldBindJSON(&targets); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := db.Exec(`
+		UPDATE daily_targets 
+		SET carbs_min = $1, carbs_max = $2, fat_min = $3, fat_max = $4, 
+		    protein_min = $5, protein_max = $6, kcal_min = $7, kcal_max = $8, 
+		    updated_at = CURRENT_TIMESTAMP
+		WHERE id = $9
+	`, 
+		getMacroTargetFloat(targets.Carbs, "min"), getMacroTargetFloat(targets.Carbs, "max"), 
+		getMacroTargetFloat(targets.Fat, "min"), getMacroTargetFloat(targets.Fat, "max"), 
+		getMacroTargetFloat(targets.Protein, "min"), getMacroTargetFloat(targets.Protein, "max"), 
+		getMacroTargetFloat(targets.Kcal, "min"), getMacroTargetFloat(targets.Kcal, "max"), 
+		id,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, targets)
+}
+
+func deleteDailyTargets(c *gin.Context) {
+	id := c.Param("id")
+	
+	_, err := db.Exec("DELETE FROM daily_targets WHERE id = $1", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Daily targets deleted successfully"})
 }
