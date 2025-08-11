@@ -16,7 +16,10 @@ interface MealTemplateManagerProps {
 
 interface EditableTemplate extends Omit<MealTemplate, 'id' | 'ingredients'> {
   key: string;
-  ingredients: number[]; // Array of ingredient template IDs
+  ingredients: Array<{
+    id: number;
+    quantity: number;
+  }>; // Array of ingredient template IDs with quantities
 }
 
 export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
@@ -36,11 +39,11 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
     ingredients: [],
   });
 
-  const handleNewTemplateChange = (field: keyof EditableTemplate, value: string | number[]) => {
+  const handleNewTemplateChange = (field: keyof EditableTemplate, value: string | Array<{id: number, quantity: number}>) => {
     setNewTemplate(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleEditingTemplateChange = (field: keyof EditableTemplate, value: string | number[]) => {
+  const handleEditingTemplateChange = (field: keyof EditableTemplate, value: string | Array<{id: number, quantity: number}>) => {
     if (editingTemplate) {
       setEditingTemplate(prev => prev ? { ...prev, [field]: value } : null);
     }
@@ -49,8 +52,11 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
   const saveNewTemplate = () => {
     if (newTemplate.name && newTemplate.ingredients.length > 0) {
       const ingredients = ingredientTemplates.filter(it => 
-        newTemplate.ingredients.includes(it.id!)
-      );
+        newTemplate.ingredients.some(ing => ing.id === it.id)
+      ).map(it => ({
+        ...it,
+        quantity: newTemplate.ingredients.find(ing => ing.id === it.id)?.quantity || 1
+      }));
       
       onSaveTemplate({
         name: newTemplate.name,
@@ -72,8 +78,11 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
         editingTemplate.name && 
         editingTemplate.ingredients.length > 0) {
       const ingredients = ingredientTemplates.filter(it => 
-        editingTemplate.ingredients.includes(it.id!)
-      );
+        editingTemplate.ingredients.some(ing => ing.id === it.id)
+      ).map(it => ({
+        ...it,
+        quantity: editingTemplate.ingredients.find(ing => ing.id === it.id)?.quantity || 1
+      }));
       
       // Find the template ID from the templates array
       const template = templates.find(t => t.name === editingTemplate.name);
@@ -93,7 +102,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
       key: `edit-${template.id}`,
       name: template.name,
       description: template.description || '',
-      ingredients: template.ingredients.map(i => i.id!),
+      ingredients: template.ingredients.map(i => ({ id: i.id!, quantity: i.quantity || 1 })),
     });
   };
 
@@ -103,26 +112,31 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
 
   const toggleIngredient = (ingredientId: number, isNew: boolean) => {
     if (isNew) {
-      const newIngredients = newTemplate.ingredients.includes(ingredientId)
-        ? newTemplate.ingredients.filter(id => id !== ingredientId)
-        : [...newTemplate.ingredients, ingredientId];
+      const newIngredients = newTemplate.ingredients.some(ing => ing.id === ingredientId)
+        ? newTemplate.ingredients.filter(id => id.id !== ingredientId)
+        : [...newTemplate.ingredients, { id: ingredientId, quantity: 1 }];
       handleNewTemplateChange('ingredients', newIngredients);
     } else if (editingTemplate) {
-      const newIngredients = editingTemplate.ingredients.includes(ingredientId)
-        ? editingTemplate.ingredients.filter(id => id !== ingredientId)
-        : [...editingTemplate.ingredients, ingredientId];
+      const newIngredients = editingTemplate.ingredients.some(ing => ing.id === ingredientId)
+        ? editingTemplate.ingredients.filter(id => id.id !== ingredientId)
+        : [...editingTemplate.ingredients, { id: ingredientId, quantity: 1 }];
       handleEditingTemplateChange('ingredients', newIngredients);
     }
   };
 
-  const getTotalMacros = (ingredientIds: number[]) => {
-    const ingredients = ingredientTemplates.filter(it => ingredientIds.includes(it.id!));
-    return ingredients.reduce((acc, ing) => ({
-      carbs: acc.carbs + ing.carbs,
-      fat: acc.fat + ing.fat,
-      protein: acc.protein + ing.protein,
-      kcal: acc.kcal + ing.kcal,
-    }), { carbs: 0, fat: 0, protein: 0, kcal: 0 });
+  const getTotalMacros = (ingredients: Array<{id: number, quantity: number}>) => {
+    return ingredients.reduce((acc, ing) => {
+      const template = ingredientTemplates.find(it => it.id === ing.id);
+      if (template) {
+        return {
+          carbs: acc.carbs + (template.carbs * ing.quantity),
+          fat: acc.fat + (template.fat * ing.quantity),
+          protein: acc.protein + (template.protein * ing.quantity),
+          kcal: acc.kcal + (template.kcal * ing.quantity),
+        };
+      }
+      return acc;
+    }, { carbs: 0, fat: 0, protein: 0, kcal: 0 });
   };
 
   return (
@@ -223,7 +237,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
           `}>Select Ingredients</label>
           <div css={css`
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 0.5rem;
             max-height: 200px;
             overflow-y: auto;
@@ -232,30 +246,67 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
             padding: 0.5rem;
             background: white;
           `}>
-            {ingredientTemplates.map((ingredient) => (
-              <label key={ingredient.id} css={css`
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.25rem;
-                cursor: pointer;
-                font-size: 0.875rem;
-                
-                &:hover {
-                  background: #f8f9fa;
-                }
-              `}>
-                <input
-                  type="checkbox"
-                  checked={newTemplate.ingredients.includes(ingredient.id!)}
-                  onChange={() => toggleIngredient(ingredient.id!, true)}
-                />
-                <span>{ingredient.name}</span>
-                <span css={css`color: #666; font-size: 0.75rem;`}>
-                  ({ingredient.carbs}g C, {ingredient.fat}g F, {ingredient.protein}g P)
-                </span>
-              </label>
-            ))}
+            {ingredientTemplates.map((ingredient) => {
+              const isSelected = newTemplate.ingredients.some(ing => ing.id === ingredient.id);
+              const selectedIngredient = newTemplate.ingredients.find(ing => ing.id === ingredient.id);
+              
+              return (
+                <div key={ingredient.id} css={css`
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  padding: 0.5rem;
+                  border: 1px solid ${isSelected ? '#007bff' : '#ddd'};
+                  border-radius: 4px;
+                  background: ${isSelected ? '#f8f9ff' : 'white'};
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                  
+                  &:hover {
+                    background: ${isSelected ? '#f0f4ff' : '#f8f9fa'};
+                  }
+                `}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleIngredient(ingredient.id!, true)}
+                  />
+                  <span css={css`flex: 1;`}>{ingredient.name}</span>
+                  <span css={css`color: #666; font-size: 0.75rem;`}>
+                    ({ingredient.carbs}g C, {ingredient.fat}g F, {ingredient.protein}g P)
+                  </span>
+                  {isSelected && (
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={selectedIngredient?.quantity || 1}
+                      onChange={(e) => {
+                        const newIngredients = newTemplate.ingredients.map(ing => 
+                          ing.id === ingredient.id 
+                            ? { ...ing, quantity: parseFloat(e.target.value) || 1 }
+                            : ing
+                        );
+                        handleNewTemplateChange('ingredients', newIngredients);
+                      }}
+                      css={css`
+                        width: 60px;
+                        padding: 0.25rem;
+                        border: 1px solid #ddd;
+                        border-radius: 2px;
+                        font-size: 0.75rem;
+                        text-align: center;
+                        
+                        &:focus {
+                          outline: none;
+                          border-color: #007bff;
+                        }
+                      `}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -268,10 +319,10 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
             border-radius: 4px;
             font-size: 0.875rem;
           `}>
-            <strong>Total Macros:</strong> {getTotalMacros(newTemplate.ingredients).carbs}g carbs, 
-            {getTotalMacros(newTemplate.ingredients).fat}g fat, 
-            {getTotalMacros(newTemplate.ingredients).protein}g protein, 
-            {getTotalMacros(newTemplate.ingredients).kcal} kcal
+            <strong>Total Macros:</strong> {getTotalMacros(newTemplate.ingredients).carbs.toFixed(1)}g carbs, 
+            {getTotalMacros(newTemplate.ingredients).fat.toFixed(1)}g fat, 
+            {getTotalMacros(newTemplate.ingredients).protein.toFixed(1)}g protein, 
+            {getTotalMacros(newTemplate.ingredients).kcal.toFixed(1)} kcal
           </div>
         )}
       </div>
@@ -414,30 +465,64 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                           padding: 0.5rem;
                           background: #f8f9fa;
                         `}>
-                          {ingredientTemplates.map((ingredient) => (
-                            <label key={ingredient.id} css={css`
-                              display: flex;
-                              align-items: center;
-                              gap: 0.5rem;
-                              padding: 0.25rem;
-                              cursor: pointer;
-                              font-size: 0.875rem;
-                              
-                              &:hover {
-                                background: #e9ecef;
-                              }
-                            `}>
-                              <input
-                                type="checkbox"
-                                checked={editingTemplate.ingredients.includes(ingredient.id!)}
-                                onChange={() => toggleIngredient(ingredient.id!, false)}
-                              />
-                              <span>{ingredient.name}</span>
-                              <span css={css`color: #666; font-size: 0.75rem;`}>
-                                ({ingredient.carbs}g C, {ingredient.fat}g F, {ingredient.protein}g P)
-                              </span>
-                            </label>
-                          ))}
+                          {ingredientTemplates.map((ingredient) => {
+                            const isSelected = editingTemplate.ingredients.some(ing => ing.id === ingredient.id);
+                            const selectedIngredient = editingTemplate.ingredients.find(ing => ing.id === ingredient.id);
+                            
+                            return (
+                              <label key={ingredient.id} css={css`
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                padding: 0.25rem;
+                                cursor: pointer;
+                                font-size: 0.875rem;
+                                
+                                &:hover {
+                                  background: #e9ecef;
+                                }
+                              `}>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleIngredient(ingredient.id!, false)}
+                                />
+                                <span css={css`flex: 1;`}>{ingredient.name}</span>
+                                <span css={css`color: #666; font-size: 0.75rem;`}>
+                                  ({ingredient.carbs}g C, {ingredient.fat}g F, {ingredient.protein}g P)
+                                </span>
+                                {isSelected && (
+                                  <input
+                                    type="number"
+                                    min="0.1"
+                                    step="0.1"
+                                    value={selectedIngredient?.quantity || 1}
+                                    onChange={(e) => {
+                                      const newIngredients = editingTemplate.ingredients.map(ing => 
+                                        ing.id === ingredient.id 
+                                          ? { ...ing, quantity: parseFloat(e.target.value) || 1 }
+                                          : ing
+                                      );
+                                      handleEditingTemplateChange('ingredients', newIngredients);
+                                    }}
+                                    css={css`
+                                      width: 60px;
+                                      padding: 0.25rem;
+                                      border: 1px solid #ddd;
+                                      border-radius: 2px;
+                                      font-size: 0.75rem;
+                                      text-align: center;
+                                      
+                                      &:focus {
+                                        outline: none;
+                                        border-color: #007bff;
+                                      }
+                                    `}
+                                  />
+                                )}
+                              </label>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -466,15 +551,15 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                         <div css={css`text-align: center;`}>
                           {template.ingredients.length} ingredients
                         </div>
-                        <div css={css`text-align: center;`}>
-                          {template.ingredients.reduce((sum, ing) => sum + ing.carbs, 0).toFixed(1)}g
-                        </div>
-                        <div css={css`text-align: center;`}>
-                          {template.ingredients.reduce((sum, ing) => sum + ing.fat, 0).toFixed(1)}g
-                        </div>
-                        <div css={css`text-align: center;`}>
-                          {template.ingredients.reduce((sum, ing) => sum + ing.protein, 0).toFixed(1)}g
-                        </div>
+                                                  <div css={css`text-align: center;`}>
+                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).carbs.toFixed(1)}g
+                          </div>
+                          <div css={css`text-align: center;`}>
+                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).fat.toFixed(1)}g
+                          </div>
+                          <div css={css`text-align: center;`}>
+                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).protein.toFixed(1)}g
+                          </div>
                         <div css={css`
                           display: flex;
                           gap: 0.5rem;
@@ -482,7 +567,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                           <Button
                             buttonStyle="solid"
                             color="#007bff"
-                            size="small"
+                            size="regular"
                             onClick={() => onUseTemplate(template)}
                           >
                             Use
@@ -490,7 +575,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                           <Button
                             buttonStyle="solid"
                             color="#ffc107"
-                            size="small"
+                            size="regular"
                             onClick={() => startEditing(template)}
                           >
                             Edit
@@ -498,7 +583,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                           <Button
                             buttonStyle="solid"
                             color="#dc3545"
-                            size="small"
+                            size="regular"
                             onClick={() => template.id && onDeleteTemplate(template.id)}
                           >
                             Delete
@@ -511,7 +596,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                         font-size: 0.875rem;
                         color: #666;
                       `}>
-                        <strong>Ingredients:</strong> {template.ingredients.map(ing => ing.name).join(', ')}
+                        <strong>Ingredients:</strong> {template.ingredients.map(ing => `${ing.name} (${ing.quantity})`).join(', ')}
                       </div>
                     </div>
                   )}

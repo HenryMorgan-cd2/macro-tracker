@@ -32,6 +32,7 @@ type IngredientTemplate struct {
 	Protein    float64 `json:"protein"`
 	Kcal       float64 `json:"kcal"`
 	MacroUnit  string  `json:"macroUnit"`
+	Quantity   float64 `json:"quantity,omitempty"` // Default quantity when used in meal templates
 	CreatedAt  string  `json:"createdAt,omitempty"`
 	UpdatedAt  string  `json:"updatedAt,omitempty"`
 }
@@ -715,6 +716,9 @@ func getMealTemplates(c *gin.Context) {
 				Protein:    protein.Float64,
 				Kcal:       kcal.Float64,
 				MacroUnit:  macroUnit.String,
+				Quantity:   quantity.Float64,
+				CreatedAt:  "",
+				UpdatedAt:  "",
 			}
 			template.Ingredients = append(template.Ingredients, ingredient)
 		}
@@ -784,6 +788,7 @@ func getMealTemplate(c *gin.Context) {
 				Protein:    protein.Float64,
 				Kcal:       kcal.Float64,
 				MacroUnit:  macroUnit.String,
+				Quantity:   quantity.Float64,
 				CreatedAt:  "",
 				UpdatedAt:  "",
 			}
@@ -824,8 +829,12 @@ func createMealTemplate(c *gin.Context) {
 
 	// Insert meal template ingredients
 	for _, ingredient := range template.Ingredients {
+		quantity := ingredient.Quantity
+		if quantity == 0 {
+			quantity = 1.0 // Default to 1 if not specified
+		}
 		_, err = tx.Exec("INSERT INTO meal_template_ingredients (meal_template_id, ingredient_template_id, quantity) VALUES ($1, $2, $3)", 
-			templateID, ingredient.ID, 1.0) // Default quantity to 1
+			templateID, ingredient.ID, quantity)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -873,8 +882,12 @@ func updateMealTemplate(c *gin.Context) {
 
 	// Insert new meal template ingredients
 	for _, ingredient := range template.Ingredients {
+		quantity := ingredient.Quantity
+		if quantity == 0 {
+			quantity = 1.0 // Default to 1 if not specified
+		}
 		_, err = tx.Exec("INSERT INTO meal_template_ingredients (meal_template_id, ingredient_template_id, quantity) VALUES ($1, $2, $3)", 
-			id, ingredient.ID, 1.0) // Default quantity to 1
+			id, ingredient.ID, quantity)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

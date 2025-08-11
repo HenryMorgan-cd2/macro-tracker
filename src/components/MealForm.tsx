@@ -149,7 +149,7 @@ export const MealForm: React.FC<MealFormProps> = ({
     const newIngredients: EditableIngredient[] = template.ingredients.map(ingredient => ({
       key: Math.random().toString(36).substr(2, 9),
       name: ingredient.name,
-      quantity: 1, // Default to 1 unit
+      quantity: ingredient.quantity || 1, // Use template quantity or default to 1
       carbs: ingredient.carbs,
       fat: ingredient.fat,
       protein: ingredient.protein,
