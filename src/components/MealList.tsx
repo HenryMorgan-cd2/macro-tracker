@@ -302,15 +302,18 @@ export const MealList: React.FC<MealListProps> = ({
               
               return (
                 <div key={meal.id} css={css`
-                  border-bottom: 1px solid #eee;
+                  border-bottom: 2px solid #e0e0e0;
                   
                   &:last-child {
                     border-bottom: none;
+                    margin-bottom: 0;
                   }
                 `}>
                   <div css={css`
                     padding: clamp(1rem, 4vw, 1.5rem);
-                    border-bottom: 1px solid #eee;
+                    background: #fafbfc;
+                    border-radius: var(--border-radius) var(--border-radius) 0 0;
+                    border-bottom: 1px solid #e9ecef;
                     display: flex;
                     flex-direction: column;
                     gap: 1rem;
@@ -318,7 +321,7 @@ export const MealList: React.FC<MealListProps> = ({
                     @media (min-width: 768px) {
                       flex-direction: row;
                       justify-content: space-between;
-                      align-items: center;
+                      align-items: flex-start;
                       gap: 0;
                     }
                   `}>
@@ -326,19 +329,112 @@ export const MealList: React.FC<MealListProps> = ({
                       flex: 1;
                       min-width: 0;
                     `}>
-                      <h3 css={css`
-                        font-size: clamp(1.1rem, 3.5vw, 1.25rem);
-                        font-weight: 600;
-                        color: #333;
-                        margin: 0;
-                        word-wrap: break-word;
-                        overflow-wrap: break-word;
-                      `}>{meal.name}</h3>
-                      <p css={css`
-                        color: #666;
-                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-                        margin-top: 0.25rem;
-                      `}>{formatDateTime(meal.datetime)}</p>
+                      <div css={css`
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        margin-bottom: 0.5rem;
+                      `}>
+                        <h3 css={css`
+                          font-size: clamp(1.1rem, 3.5vw, 1.25rem);
+                          font-weight: 600;
+                          color: #333;
+                          margin: 0;
+                          word-wrap: break-word;
+                          overflow-wrap: break-word;
+                        `}>{meal.name}</h3>
+                        <span css={css`
+                          color: #666;
+                          font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                          white-space: nowrap;
+                        `}>{formatDateTime(meal.datetime)}</span>
+                      </div>
+                      
+                      {/* Meal macros moved to header */}
+                      <div css={css`
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                        gap: 0.5rem;
+                        margin-top: 1rem;
+                        max-width: 400px;
+                      `}>
+                        <div css={css`
+                          text-align: center;
+                          padding: 0.5rem;
+                          background: #ffffff;
+                          border-radius: var(--border-radius);
+                          border: 1px solid #e9ecef;
+                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                        `}>
+                          <div css={css`
+                            font-size: clamp(0.7rem, 2vw, 0.8rem);
+                            color: #666;
+                            font-weight: 600;
+                          `}>Carbs</div>
+                          <div css={css`
+                            font-size: clamp(0.9rem, 2.5vw, 1rem);
+                            color: #333;
+                            font-weight: 700;
+                          `}>{mealTotals.carbs.toFixed(1)}g</div>
+                        </div>
+                        <div css={css`
+                          text-align: center;
+                          padding: 0.5rem;
+                          background: #ffffff;
+                          border-radius: var(--border-radius);
+                          border: 1px solid #e9ecef;
+                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                        `}>
+                          <div css={css`
+                            font-size: clamp(0.7rem, 2vw, 0.8rem);
+                            color: #666;
+                            font-weight: 600;
+                          `}>Fat</div>
+                          <div css={css`
+                            font-size: clamp(0.9rem, 2.5vw, 1rem);
+                            color: #333;
+                            font-weight: 700;
+                          `}>{mealTotals.fat.toFixed(1)}g</div>
+                        </div>
+                        <div css={css`
+                          text-align: center;
+                          padding: 0.5rem;
+                          background: #ffffff;
+                          border-radius: var(--border-radius);
+                          border: 1px solid #e9ecef;
+                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                        `}>
+                          <div css={css`
+                            font-size: clamp(0.7rem, 2vw, 0.8rem);
+                            color: #666;
+                            font-weight: 600;
+                          `}>Protein</div>
+                          <div css={css`
+                            font-size: clamp(0.9rem, 2.5vw, 1rem);
+                            color: #333;
+                            font-weight: 700;
+                          `}>{mealTotals.protein.toFixed(1)}g</div>
+                        </div>
+                        <div css={css`
+                          text-align: center;
+                          padding: 0.5rem;
+                          background: #ffffff;
+                          border-radius: var(--border-radius);
+                          border: 1px solid #e9ecef;
+                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                        `}>
+                          <div css={css`
+                            font-size: clamp(0.7rem, 2vw, 0.8rem);
+                            color: #666;
+                            font-weight: 600;
+                          `}>kcal</div>
+                          <div css={css`
+                            font-size: clamp(0.9rem, 2.5vw, 1rem);
+                            color: #333;
+                            font-weight: 700;
+                          `}>{mealTotals.kcal.toFixed(0)}</div>
+                        </div>
+                      </div>
                     </div>
                     <div css={css`
                       display: flex;
@@ -379,21 +475,22 @@ export const MealList: React.FC<MealListProps> = ({
                   </div>
                   
                   <div css={css`
-                    padding: clamp(1rem, 4vw, 1.5rem);
+                    padding: clamp(0.75rem, 3vw, 1rem);
+                    background: #ffffff;
+                    border-radius: 0 0 var(--border-radius) var(--border-radius);
                   `}>
-                    <h4>Ingredients</h4>
                     <div css={css`
                       display: grid;
-                      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                      gap: var(--grid-gap);
-                      margin-top: 1rem;
+                      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                      gap: 0.75rem;
                     `}>
                       {meal.ingredients.map((ingredient, index) => (
                         <div key={index} css={css`
                           background: #f8f9fa;
-                          padding: 1rem;
+                          padding: 0.75rem;
                           border-radius: var(--border-radius);
-                          border-left: 4px solid #007bff;
+                          border-left: 3px solid #007bff;
+                          border: 1px solid #e9ecef;
                         `}>
                           <div css={css`
                             font-weight: 600;
@@ -401,6 +498,7 @@ export const MealList: React.FC<MealListProps> = ({
                             margin-bottom: 0.5rem;
                             word-wrap: break-word;
                             overflow-wrap: break-word;
+                            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
                           `}>
                             {ingredient.name} {ingredient.macroUnit === 'per_100g' 
                               ? `(${ingredient.quantity}g)` 
@@ -411,9 +509,9 @@ export const MealList: React.FC<MealListProps> = ({
                           </div>
                           <div css={css`
                             display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
                             gap: 0.5rem;
-                            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+                            font-size: clamp(0.7rem, 2vw, 0.8rem);
                           `}>
                             <div css={css`
                               text-align: center;
@@ -422,10 +520,12 @@ export const MealList: React.FC<MealListProps> = ({
                                 display: block;
                                 font-weight: 600;
                                 color: #666;
+                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
                               }
                               
                               span:last-child {
                                 color: #333;
+                                font-size: clamp(0.7rem, 2vw, 0.8rem);
                               }
                             `}>
                               <span>Carbs</span>
@@ -443,10 +543,12 @@ export const MealList: React.FC<MealListProps> = ({
                                 display: block;
                                 font-weight: 600;
                                 color: #666;
+                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
                               }
                               
                               span:last-child {
                                 color: #333;
+                                font-size: clamp(0.7rem, 2vw, 0.8rem);
                               }
                             `}>
                               <span>Fat</span>
@@ -464,10 +566,12 @@ export const MealList: React.FC<MealListProps> = ({
                                 display: block;
                                 font-weight: 600;
                                 color: #666;
+                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
                               }
                               
                               span:last-child {
                                 color: #333;
+                                font-size: clamp(0.7rem, 2vw, 0.8rem);
                               }
                             `}>
                               <span>Protein</span>
@@ -485,10 +589,12 @@ export const MealList: React.FC<MealListProps> = ({
                                 display: block;
                                 font-weight: 600;
                                 color: #666;
+                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
                               }
                               
                               span:last-child {
                                 color: #333;
+                                font-size: clamp(0.7rem, 2vw, 0.8rem);
                               }
                             `}>
                               <span>kcal</span>
@@ -503,7 +609,7 @@ export const MealList: React.FC<MealListProps> = ({
                           {ingredient.quantity > 1 && (
                             <div css={css`
                               margin-top: 0.5rem;
-                              font-size: clamp(0.65rem, 2vw, 0.75rem);
+                              font-size: clamp(0.6rem, 1.8vw, 0.7rem);
                               color: #666;
                               text-align: center;
                             `}>
@@ -515,108 +621,6 @@ export const MealList: React.FC<MealListProps> = ({
                           )}
                         </div>
                       ))}
-                    </div>
-                    
-                    <div css={css`
-                      margin-top: 1.5rem;
-                      padding-top: 1rem;
-                      border-top: 2px solid #eee;
-                      display: grid;
-                      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                      gap: var(--grid-gap);
-                    `}>
-                      <div css={css`
-                        text-align: center;
-                        padding: clamp(0.75rem, 3vw, 1rem);
-                        background: #e9ecef;
-                        border-radius: var(--border-radius);
-                        
-                        span:first-child {
-                          display: block;
-                          font-weight: 600;
-                          color: #666;
-                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                        }
-                        
-                        span:last-child {
-                          display: block;
-                          font-size: clamp(1rem, 3.5vw, 1.25rem);
-                          font-weight: 700;
-                          color: #333;
-                        }
-                      `}>
-                        <span>Total Carbs</span>
-                        <span>{mealTotals.carbs.toFixed(1)}g</span>
-                      </div>
-                      <div css={css`
-                        text-align: center;
-                        padding: clamp(0.75rem, 3vw, 1rem);
-                        background: #e9ecef;
-                        border-radius: var(--border-radius);
-                        
-                        span:first-child {
-                          display: block;
-                          font-weight: 600;
-                          color: #666;
-                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                        }
-                        
-                        span:last-child {
-                          display: block;
-                          font-size: clamp(1rem, 3.5vw, 1.25rem);
-                          font-weight: 700;
-                          color: #333;
-                        }
-                      `}>
-                        <span>Total Fat</span>
-                        <span>{mealTotals.fat.toFixed(1)}g</span>
-                      </div>
-                      <div css={css`
-                        text-align: center;
-                        padding: clamp(0.75rem, 3vw, 1rem);
-                        background: #e9ecef;
-                        border-radius: var(--border-radius);
-                        
-                        span:first-child {
-                          display: block;
-                          font-weight: 600;
-                          color: #666;
-                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                        }
-                        
-                        span:last-child {
-                          display: block;
-                          font-size: clamp(1rem, 3.5vw, 1.25rem);
-                          font-weight: 700;
-                          color: #333;
-                        }
-                      `}>
-                        <span>Total Protein</span>
-                        <span>{mealTotals.protein.toFixed(1)}g</span>
-                      </div>
-                      <div css={css`
-                        text-align: center;
-                        padding: clamp(0.75rem, 3vw, 1rem);
-                        background: #e9ecef;
-                        border-radius: var(--border-radius);
-                        
-                        span:first-child {
-                          display: block;
-                          font-weight: 600;
-                          color: #666;
-                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-                        }
-                        
-                        span:last-child {
-                          display: block;
-                          font-size: clamp(1rem, 3.5vw, 1.25rem);
-                          font-weight: 700;
-                          color: #333;
-                        }
-                      `}>
-                        <span>Total kcal</span>
-                        <span>{mealTotals.kcal.toFixed(0)}</span>
-                      </div>
                     </div>
                   </div>
                 </div>
