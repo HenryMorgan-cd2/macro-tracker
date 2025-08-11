@@ -25,16 +25,17 @@ type Ingredient struct {
 }
 
 type IngredientTemplate struct {
-	ID         int     `json:"id,omitempty"`
-	Name       string  `json:"name"`
-	Carbs      float64 `json:"carbs"`
-	Fat        float64 `json:"fat"`
-	Protein    float64 `json:"protein"`
-	Kcal       float64 `json:"kcal"`
-	MacroUnit  string  `json:"macroUnit"`
-	Quantity   float64 `json:"quantity,omitempty"` // Default quantity when used in meal templates
-	CreatedAt  string  `json:"createdAt,omitempty"`
-	UpdatedAt  string  `json:"updatedAt,omitempty"`
+	ID              int     `json:"id,omitempty"`
+	Name            string  `json:"name"`
+	Carbs           float64 `json:"carbs"`
+	Fat             float64 `json:"fat"`
+	Protein         float64 `json:"protein"`
+	Kcal            float64 `json:"kcal"`
+	MacroUnit       string  `json:"macroUnit"`
+	DefaultQuantity float64 `json:"defaultQuantity,omitempty"` // Default quantity when used in meals
+	Quantity        float64 `json:"quantity,omitempty"`         // Quantity when used in meal templates
+	CreatedAt       string  `json:"createdAt,omitempty"`
+	UpdatedAt       string  `json:"updatedAt,omitempty"`
 }
 
 type Meal struct {
@@ -206,6 +207,7 @@ func initDB() error {
 			protein DECIMAL(8,2) NOT NULL DEFAULT 0,
 			kcal DECIMAL(8,2) NOT NULL DEFAULT 0,
 			macro_unit VARCHAR(20) NOT NULL DEFAULT 'per_unit',
+			default_quantity DECIMAL(8,2) DEFAULT 1,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)
@@ -263,17 +265,17 @@ func initDB() error {
 
 	if count == 0 {
 		_, err = db.Exec(`
-			INSERT INTO ingredient_templates (name, carbs, fat, protein, kcal, macro_unit) VALUES
-				('Chicken Breast', 0, 3.6, 31, 165, 'per_100g'),
-				('Brown Rice', 23, 0.9, 2.7, 111, 'per_100g'),
-				('Broccoli', 7, 0.4, 2.8, 34, 'per_100g'),
-				('Salmon', 0, 13, 20, 208, 'per_100g'),
-				('Sweet Potato', 20, 0.1, 1.6, 86, 'per_100g'),
-				('Eggs', 1.1, 5.3, 6.3, 74, 'per_unit'),
-				('Greek Yogurt', 3.6, 0.4, 10, 59, 'per_100g'),
-				('Oatmeal', 12, 1.8, 2.4, 68, 'per_100g'),
-				('Banana', 23, 0.3, 1.1, 89, 'per_unit'),
-				('Almonds', 6, 49, 21, 579, 'per_100g')
+			INSERT INTO ingredient_templates (name, carbs, fat, protein, kcal, macro_unit, default_quantity) VALUES
+				('Chicken Breast', 0, 3.6, 31, 165, 'per_100g', 150),
+				('Brown Rice', 23, 0.9, 2.7, 111, 'per_100g', 100),
+				('Broccoli', 7, 0.4, 2.8, 34, 'per_100g', 100),
+				('Salmon', 0, 13, 20, 208, 'per_100g', 150),
+				('Sweet Potato', 20, 0.1, 1.6, 86, 'per_100g', 150),
+				('Eggs', 1.1, 5.3, 6.3, 74, 'per_unit', 1),
+				('Greek Yogurt', 3.6, 0.4, 10, 59, 'per_100g', 100),
+				('Oatmeal', 12, 1.8, 2.4, 68, 'per_100g', 200),
+				('Banana', 23, 0.3, 1.1, 89, 'per_unit', 1),
+				('Almonds', 6, 49, 21, 579, 'per_100g', 30)
 		`)
 		if err != nil {
 			return err
@@ -577,7 +579,7 @@ func createIngredient(c *gin.Context) {
 
 // Ingredient Template handlers
 func getIngredientTemplates(c *gin.Context) {
-	rows, err := db.Query("SELECT id, name, carbs, fat, protein, kcal, macro_unit, created_at, updated_at FROM ingredient_templates ORDER BY name")
+	rows, err := db.Query("SELECT id, name, carbs, fat, protein, kcal, macro_unit, default_quantity, created_at, updated_at FROM ingredient_templates ORDER BY name")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -588,7 +590,7 @@ func getIngredientTemplates(c *gin.Context) {
 	for rows.Next() {
 		var template IngredientTemplate
 		var createdAt, updatedAt sql.NullString
-		err := rows.Scan(&template.ID, &template.Name, &template.Carbs, &template.Fat, &template.Protein, &template.Kcal, &template.MacroUnit, &createdAt, &updatedAt)
+		err := rows.Scan(&template.ID, &template.Name, &template.Carbs, &template.Fat, &template.Protein, &template.Kcal, &template.MacroUnit, &template.DefaultQuantity, &createdAt, &updatedAt)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -614,10 +616,10 @@ func createIngredientTemplate(c *gin.Context) {
 
 	var id int
 	err := db.QueryRow(`
-		INSERT INTO ingredient_templates (name, carbs, fat, protein, kcal, macro_unit) 
-		VALUES ($1, $2, $3, $4, $5, $6) 
+		INSERT INTO ingredient_templates (name, carbs, fat, protein, kcal, macro_unit, default_quantity) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7) 
 		RETURNING id
-	`, template.Name, template.Carbs, template.Fat, template.Protein, template.Kcal, template.MacroUnit).Scan(&id)
+	`, template.Name, template.Carbs, template.Fat, template.Protein, template.Kcal, template.MacroUnit, template.DefaultQuantity).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -637,9 +639,9 @@ func updateIngredientTemplate(c *gin.Context) {
 
 	_, err := db.Exec(`
 		UPDATE ingredient_templates 
-		SET name = $1, carbs = $2, fat = $3, protein = $4, kcal = $5, macro_unit = $6, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $7
-	`, template.Name, template.Carbs, template.Fat, template.Protein, template.Kcal, template.MacroUnit, id)
+		SET name = $1, carbs = $2, fat = $3, protein = $4, kcal = $5, macro_unit = $6, default_quantity = $7, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $8
+	`, template.Name, template.Carbs, template.Fat, template.Protein, template.Kcal, template.MacroUnit, template.DefaultQuantity, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

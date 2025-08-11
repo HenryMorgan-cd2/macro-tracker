@@ -19,6 +19,7 @@ interface EditableTemplate extends Omit<IngredientTemplate, 'carbs' | 'fat' | 'p
   fat: number | null;
   protein: number | null;
   kcal: number | null;
+  defaultQuantity: number | null;
   macroUnit: 'per_unit' | 'per_100g';
 }
 
@@ -37,6 +38,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
     fat: null,
     protein: null,
     kcal: null,
+    defaultQuantity: 1,
     macroUnit: 'per_unit',
   });
 
@@ -62,6 +64,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         fat: newTemplate.fat,
         protein: newTemplate.protein,
         kcal: newTemplate.kcal,
+        defaultQuantity: newTemplate.defaultQuantity || 1,
         macroUnit: newTemplate.macroUnit,
       });
       setNewTemplate({
@@ -71,6 +74,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         fat: null,
         protein: null,
         kcal: null,
+        defaultQuantity: 1,
         macroUnit: 'per_unit',
       });
     }
@@ -92,6 +96,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
           fat: editingTemplate.fat,
           protein: editingTemplate.protein,
           kcal: editingTemplate.kcal,
+          defaultQuantity: editingTemplate.defaultQuantity || 1,
           macroUnit: editingTemplate.macroUnit,
         });
         setEditingTemplate(null);
@@ -108,6 +113,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
       fat: template.fat,
       protein: template.protein,
       kcal: template.kcal,
+      defaultQuantity: template.defaultQuantity || 1,
       macroUnit: template.macroUnit,
     });
   };
@@ -131,7 +137,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         `}>Add New Template</h3>
         <div css={css`
           display: grid;
-          grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+          grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
           gap: 1rem;
           align-items: end;
         `}>
@@ -193,6 +199,15 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
           </div>
           
           <NumberField
+            label="Default Quantity"
+            value={newTemplate.defaultQuantity}
+            onChange={(value) => handleNewTemplateChange('defaultQuantity', value)}
+            placeholder="1"
+            step={0.1}
+            min={0}
+          />
+          
+          <NumberField
             label={`Carbs ${newTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
             value={newTemplate.carbs}
             onChange={(value) => handleNewTemplateChange('carbs', value)}
@@ -246,6 +261,30 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
           color: #333;
         `}>Existing Templates</h3>
         
+        {/* Column Headers */}
+        <div css={css`
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
+          gap: 1rem;
+          align-items: center;
+          padding: 0.5rem 1rem;
+          background: #e9ecef;
+          border-radius: 4px;
+          margin-bottom: 1rem;
+          font-weight: 600;
+          color: #333;
+          font-size: 0.875rem;
+        `}>
+          <div>Name</div>
+          <div css={css`text-align: center;`}>Unit</div>
+          <div css={css`text-align: center;`}>Default Qty</div>
+          <div css={css`text-align: center;`}>Carbs (g)</div>
+          <div css={css`text-align: center;`}>Fat (g)</div>
+          <div css={css`text-align: center;`}>Protein (g)</div>
+          <div css={css`text-align: center;`}>Calories</div>
+          <div css={css`text-align: center;`}>Actions</div>
+        </div>
+        
         {templates.length === 0 ? (
           <div css={css`
             text-align: center;
@@ -275,7 +314,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                   {isEditing ? (
                     <div css={css`
                       display: grid;
-                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
                       gap: 1rem;
                       align-items: end;
                     `}>
@@ -334,6 +373,15 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                           <option value="per_unit">Per Unit</option>
                         </select>
                       </div>
+                      
+                      <NumberField
+                        label="Default Quantity"
+                        value={editingTemplate.defaultQuantity}
+                        onChange={(value) => handleEditingTemplateChange('defaultQuantity', value)}
+                        placeholder="1"
+                        step={0.1}
+                        min={0}
+                      />
                       
                       <NumberField
                         label={`Carbs ${editingTemplate.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
@@ -396,7 +444,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                   ) : (
                     <div css={css`
                       display: grid;
-                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
                       gap: 1rem;
                       align-items: center;
                     `}>
@@ -405,6 +453,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                         color: #333;
                       `}>{template.name}</div>
                       <div css={css`text-align: center;`}>{template.macroUnit === 'per_100g' ? 'Per 100g' : 'Per Unit'}</div>
+                      <div css={css`text-align: center;`}>{template.defaultQuantity || 1}</div>
                       <div css={css`text-align: center;`}>{template.carbs}g</div>
                       <div css={css`text-align: center;`}>{template.fat}g</div>
                       <div css={css`text-align: center;`}>{template.protein}g</div>

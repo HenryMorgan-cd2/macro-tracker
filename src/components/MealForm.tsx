@@ -131,7 +131,7 @@ export const MealForm: React.FC<MealFormProps> = ({
     const newIngredient: EditableIngredient = {
       key: Math.random().toString(36).substr(2, 9),
       name: template.name,
-      quantity: 1, // Default to 1 unit
+      quantity: template.defaultQuantity || 1, // Use template default quantity or default to 1
       carbs: template.carbs,
       fat: template.fat,
       protein: template.protein,

@@ -17,7 +17,8 @@ export interface IngredientTemplate {
   protein: number;
   kcal: number;
   macroUnit: 'per_unit' | 'per_100g';
-  quantity?: number; // Default quantity when used in meal templates
+  defaultQuantity?: number; // Default quantity when used in meals
+  quantity?: number; // Quantity when used in meal templates
 }
 
 export interface MealTemplate {

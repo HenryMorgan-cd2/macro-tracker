@@ -50,3 +50,34 @@ INSERT INTO ingredient_templates (name, carbs, fat, protein, kcal, macro_unit) V
     ('Banana', 23, 0.3, 1.1, 89, 'per_unit'),
     ('Almonds', 6, 49, 21, 579, 'per_100g')
 ON CONFLICT (name) DO NOTHING;
+
+-- Migration to add default_quantity column to ingredient_templates table
+-- Run this if you have an existing database without the default_quantity column
+
+-- Add the default_quantity column if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'ingredient_templates' 
+        AND column_name = 'default_quantity'
+    ) THEN
+        ALTER TABLE ingredient_templates ADD COLUMN default_quantity DECIMAL(8,2) DEFAULT 1;
+    END IF;
+END $$;
+
+-- Update existing records with sensible default quantities based on macro_unit
+UPDATE ingredient_templates 
+SET default_quantity = CASE 
+    WHEN macro_unit = 'per_unit' THEN 1
+    WHEN macro_unit = 'per_100g' THEN 100
+    ELSE 1
+END
+WHERE default_quantity IS NULL OR default_quantity = 0;
+
+-- Set specific default quantities for common ingredients
+UPDATE ingredient_templates SET default_quantity = 200 WHERE name = 'Oatmeal';
+UPDATE ingredient_templates SET default_quantity = 150 WHERE name = 'Chicken Breast';
+UPDATE ingredient_templates SET default_quantity = 150 WHERE name = 'Salmon';
+UPDATE ingredient_templates SET default_quantity = 150 WHERE name = 'Sweet Potato';
+UPDATE ingredient_templates SET default_quantity = 30 WHERE name = 'Almonds';
