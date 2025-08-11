@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { css } from '@emotion/react';
 import { Meal, DailyTargets } from '../types';
 import { Button } from './Button';
@@ -43,6 +43,23 @@ export const MealList: React.FC<MealListProps> = ({
     return initialCollapsed;
   });
 
+  // State for dropdown menus
+  const [openMenus, setOpenMenus] = useState<Set<number>>(new Set());
+
+  // Close all menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenus.size > 0) {
+        setOpenMenus(new Set());
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenus]);
+
   const toggleMealCollapse = (mealId: number) => {
     const newCollapsed = new Set(collapsedMeals);
     if (newCollapsed.has(mealId)) {
@@ -53,7 +70,27 @@ export const MealList: React.FC<MealListProps> = ({
     setCollapsedMeals(newCollapsed);
   };
 
+  const toggleMenu = (mealId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const newOpenMenus = new Set(openMenus);
+    if (newOpenMenus.has(mealId)) {
+      newOpenMenus.delete(mealId);
+    } else {
+      // Close other open menus first
+      newOpenMenus.clear();
+      newOpenMenus.add(mealId);
+    }
+    setOpenMenus(newOpenMenus);
+  };
+
+  const closeMenu = (mealId: number) => {
+    const newOpenMenus = new Set(openMenus);
+    newOpenMenus.delete(mealId);
+    setOpenMenus(newOpenMenus);
+  };
+
   const isCollapsed = (mealId: number) => collapsedMeals.has(mealId);
+  const isMenuOpen = (mealId: number) => openMenus.has(mealId);
 
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
@@ -333,190 +370,279 @@ export const MealList: React.FC<MealListProps> = ({
                   }
                 `}>
                   <div css={css`
-                    padding: clamp(1rem, 4vw, 1.5rem);
+                    padding: clamp(0.75rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem) clamp(1rem, 4vw, 1.5rem);
                     background: #fafbfc;
                     border-radius: var(--border-radius) var(--border-radius) 0 0;
                     border-bottom: 1px solid #e9ecef;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    
-                    @media (min-width: 768px) {
-                      flex-direction: row;
-                      justify-content: space-between;
-                      align-items: flex-start;
-                      gap: 0;
-                    }
                   `}>
-                    <div css={css`
-                      flex: 1;
-                      min-width: 0;
-                    `}>
-                      <div css={css`
-                        display: flex;
-                        align-items: center;
-                        gap: 0.75rem;
-                        margin-bottom: 0.5rem;
-                      `}>
-                        <h3 css={css`
-                          font-size: clamp(1.1rem, 3.5vw, 1.25rem);
-                          font-weight: 600;
-                          color: #333;
-                          margin: 0;
-                          word-wrap: break-word;
-                          overflow-wrap: break-word;
-                        `}>{meal.name}</h3>
-                        <span css={css`
-                          color: #666;
-                          font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-                          white-space: nowrap;
-                        `}>{formatDateTime(meal.datetime)}</span>
-                      </div>
-                      
-                      {/* Meal macros moved to header */}
-                      <div css={css`
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-                        gap: 0.5rem;
-                        margin-top: 1rem;
-                        max-width: 400px;
-                      `}>
-                        <div css={css`
-                          text-align: center;
-                          padding: 0.5rem;
-                          background: #ffffff;
-                          border-radius: var(--border-radius);
-                          border: 1px solid #e9ecef;
-                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                        `}>
-                          <div css={css`
-                            font-size: clamp(0.7rem, 2vw, 0.8rem);
-                            color: #666;
-                            font-weight: 600;
-                          `}>Carbs</div>
-                          <div css={css`
-                            font-size: clamp(0.9rem, 2.5vw, 1rem);
-                            color: #333;
-                            font-weight: 700;
-                          `}>{mealTotals.carbs.toFixed(1)}g</div>
-                        </div>
-                        <div css={css`
-                          text-align: center;
-                          padding: 0.5rem;
-                          background: #ffffff;
-                          border-radius: var(--border-radius);
-                          border: 1px solid #e9ecef;
-                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                        `}>
-                          <div css={css`
-                            font-size: clamp(0.7rem, 2vw, 0.8rem);
-                            color: #666;
-                            font-weight: 600;
-                          `}>Fat</div>
-                          <div css={css`
-                            font-size: clamp(0.9rem, 2.5vw, 1rem);
-                            color: #333;
-                            font-weight: 700;
-                          `}>{mealTotals.fat.toFixed(1)}g</div>
-                        </div>
-                        <div css={css`
-                          text-align: center;
-                          padding: 0.5rem;
-                          background: #ffffff;
-                          border-radius: var(--border-radius);
-                          border: 1px solid #e9ecef;
-                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                        `}>
-                          <div css={css`
-                            font-size: clamp(0.7rem, 2vw, 0.8rem);
-                            color: #666;
-                            font-weight: 600;
-                          `}>Protein</div>
-                          <div css={css`
-                            font-size: clamp(0.9rem, 2.5vw, 1rem);
-                            color: #333;
-                            font-weight: 700;
-                          `}>{mealTotals.protein.toFixed(1)}g</div>
-                        </div>
-                        <div css={css`
-                          text-align: center;
-                          padding: 0.5rem;
-                          background: #ffffff;
-                          border-radius: var(--border-radius);
-                          border: 1px solid #e9ecef;
-                          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                        `}>
-                          <div css={css`
-                            font-size: clamp(0.7rem, 2vw, 0.8rem);
-                            color: #666;
-                            font-weight: 600;
-                          `}>kcal</div>
-                          <div css={css`
-                            font-size: clamp(0.9rem, 2.5vw, 1rem);
-                            color: #333;
-                            font-weight: 700;
-                          `}>{mealTotals.kcal.toFixed(0)}</div>
-                        </div>
-                      </div>
-                    </div>
+                    {/* Header row with title and actions */}
                     <div css={css`
                       display: flex;
-                      flex-wrap: wrap;
-                      gap: 0.5rem;
-                      justify-content: center;
-                      
-                      @media (min-width: 768px) {
-                        justify-content: flex-end;
-                        flex-shrink: 0;
-                      }
+                      align-items: flex-end;
+                      justify-content: space-between;
+                      margin-bottom: 1rem;
                     `}>
-                      <Button
-                        buttonStyle="solid"
-                        color="#007bff"
-                        size="regular"
-                        onClick={() => onEdit(meal)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        buttonStyle="solid"
-                        color="#28a745"
-                        size="regular"
-                        onClick={() => onDuplicate(meal)}
-                      >
-                        Duplicate
-                      </Button>
-                      <Button
-                        buttonStyle="solid"
-                        color="#dc3545"
-                        size="regular"
-                        onClick={() => meal.id && onDelete(meal.id)}
-                      >
-                        Delete
-                      </Button>
+                      <div css={css`
+                        flex: 1;
+                        min-width: 0;
+                      `}>
+                        <div css={css`
+                          display: flex;
+                          align-items: center;
+                          gap: 0.75rem;
+                          margin-bottom: 0.5rem;
+                        `}>
+                          <h3 css={css`
+                            font-size: clamp(1.1rem, 3.5vw, 1.25rem);
+                            font-weight: 600;
+                            color: #333;
+                            margin: 0;
+                            word-wrap: break-word;
+                            overflow-wrap: break-word;
+                          `}>{meal.name}</h3>
+                          <span css={css`
+                            color: #666;
+                            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                            white-space: nowrap;
+                          `}>{formatDateTime(meal.datetime)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Actions section */}
+                      <div css={css`
+                        flex-shrink: 0;
+                        margin-left: 1rem;
+                      `}>
+                        <div css={css`
+                          position: relative;
+                        `}>
+                          <button css={css`
+                            background: #f8f9fa;
+                            border: 1px solid #e9ecef;
+                            border-radius: var(--border-radius);
+                            padding: 0.5rem;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-width: 2.5rem;
+                            height: 2.5rem;
+                            transition: background-color 0.2s ease;
+                            
+                            &:hover {
+                              background: #e9ecef;
+                            }
+                            
+                            &:focus {
+                              outline: none;
+                              box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                            }
+                          `} 
+                          onClick={(event) => toggleMenu(meal.id || 0, event)}
+                          aria-label={`Actions for ${meal.name}`}
+                          aria-expanded={isMenuOpen(meal.id || 0)}
+                          aria-haspopup="true">
+                            <span css={css`
+                              font-size: 1.2rem;
+                              color: #666;
+                              line-height: 1;
+                            `}>⋯</span>
+                          </button>
+                          
+                          <div css={css`
+                            position: absolute;
+                            top: 100%;
+                            right: 0;
+                            margin-top: 0.25rem;
+                            background: white;
+                            border: 1px solid #e9ecef;
+                            border-radius: var(--border-radius);
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            z-index: 1000;
+                            min-width: 120px;
+                            display: ${isMenuOpen(meal.id || 0) ? 'block' : 'none'};
+                            
+                            @media (max-width: 767px) {
+                              right: 0;
+                              min-width: 140px;
+                            }
+                          `} role="menu" aria-label="Meal actions">
+                            <button css={css`
+                              width: 100%;
+                              padding: 0.75rem 1rem;
+                              border: none;
+                              background: none;
+                              text-align: left;
+                              cursor: pointer;
+                              color: #007bff;
+                              font-size: 0.875rem;
+                              border-bottom: 1px solid #f1f3f4;
+                              
+                              &:hover {
+                                background: #f8f9fa;
+                              }
+                              
+                              &:last-child {
+                                border-bottom: none;
+                              }
+                            `} 
+                            onClick={() => {
+                              onEdit(meal);
+                              closeMenu(meal.id || 0);
+                            }}
+                            role="menuitem">
+                              Edit
+                            </button>
+                            <button css={css`
+                              width: 100%;
+                              padding: 0.75rem 1rem;
+                              border: none;
+                              background: none;
+                              text-align: left;
+                              cursor: pointer;
+                              color: #28a745;
+                              font-size: 0.875rem;
+                              border-bottom: 1px solid #f1f3f4;
+                              
+                              &:hover {
+                                background: #f8f9fa;
+                              }
+                            `} 
+                            onClick={() => {
+                              onDuplicate(meal);
+                              closeMenu(meal.id || 0);
+                            }}
+                            role="menuitem">
+                              Duplicate
+                            </button>
+                            <button css={css`
+                              width: 100%;
+                              padding: 0.75rem 1rem;
+                              border: none;
+                              background: none;
+                              text-align: left;
+                              cursor: pointer;
+                              color: #dc3545;
+                              font-size: 0.875rem;
+                              
+                              &:hover {
+                                background: #f8f9fa;
+                              }
+                            `} 
+                            onClick={() => {
+                              if (meal.id) {
+                                onDelete(meal.id);
+                                closeMenu(meal.id);
+                              }
+                            }}
+                            role="menuitem">
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div css={css`
-                    padding: clamp(0.75rem, 3vw, 1rem);
-                    background: #ffffff;
-                    border-radius: 0 0 var(--border-radius) var(--border-radius);
-                  `}>
-                    {/* Collapsible ingredients section */}
+                    
+                    {/* Meal macros summary below header */}
+                    <div css={css`
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                      gap: 0.5rem;
+                      max-width: 400px;
+                      margin-bottom: 0.75rem;
+                    `}>
+                      <div css={css`
+                        text-align: center;
+                        padding: 0.5rem;
+                        background: #ffffff;
+                        border-radius: var(--border-radius);
+                        border: 1px solid #e9ecef;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                      `}>
+                        <div css={css`
+                          font-size: clamp(0.7rem, 2vw, 0.8rem);
+                          color: #666;
+                          font-weight: 600;
+                        `}>Carbs</div>
+                        <div css={css`
+                          font-size: clamp(0.9rem, 2.5vw, 1rem);
+                          color: #333;
+                          font-weight: 700;
+                        `}>{mealTotals.carbs.toFixed(1)}g</div>
+                      </div>
+                      <div css={css`
+                        text-align: center;
+                        padding: 0.5rem;
+                        background: #ffffff;
+                        border-radius: var(--border-radius);
+                        border: 1px solid #e9ecef;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                      `}>
+                        <div css={css`
+                          font-size: clamp(0.7rem, 2vw, 0.8rem);
+                          color: #666;
+                          font-weight: 600;
+                        `}>Fat</div>
+                        <div css={css`
+                          font-size: clamp(0.9rem, 2.5vw, 1rem);
+                          color: #333;
+                          font-weight: 700;
+                        `}>{mealTotals.fat.toFixed(1)}g</div>
+                      </div>
+                      <div css={css`
+                        text-align: center;
+                        padding: 0.5rem;
+                        background: #ffffff;
+                        border-radius: var(--border-radius);
+                        border: 1px solid #e9ecef;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                      `}>
+                        <div css={css`
+                          font-size: clamp(0.7rem, 2vw, 0.8rem);
+                          color: #666;
+                          font-weight: 600;
+                        `}>Protein</div>
+                        <div css={css`
+                          font-size: clamp(0.9rem, 2.5vw, 1rem);
+                          color: #333;
+                          font-weight: 700;
+                        `}>{mealTotals.protein.toFixed(1)}g</div>
+                      </div>
+                      <div css={css`
+                        text-align: center;
+                        padding: 0.5rem;
+                        background: #ffffff;
+                        border-radius: var(--border-radius);
+                        border: 1px solid #e9ecef;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                      `}>
+                        <div css={css`
+                          font-size: clamp(0.7rem, 2vw, 0.8rem);
+                          color: #666;
+                          font-weight: 600;
+                        `}>kcal</div>
+                        <div css={css`
+                          font-size: clamp(0.9rem, 2.5vw, 1rem);
+                          color: #333;
+                          font-weight: 700;
+                        `}>{mealTotals.kcal.toFixed(0)}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Collapsible toggle below macro summary */}
                     <div css={css`
                       display: flex;
                       align-items: center;
                       justify-content: space-between;
-                      margin-bottom: 0.75rem;
                       padding: 0.5rem;
-                      background: #f8f9fa;
+                      background: #f0f2f5;
                       border-radius: var(--border-radius);
-                      border: 1px solid #e9ecef;
+                      border: 1px solid #e1e5e9;
                       cursor: pointer;
                       transition: background-color 0.2s ease;
                       
                       &:hover {
-                        background: #e9ecef;
+                        background: #e4e7eb;
                       }
                       
                       @media (min-width: 768px) {
@@ -524,25 +650,30 @@ export const MealList: React.FC<MealListProps> = ({
                       }
                     `} onClick={() => toggleMealCollapse(meal.id || 0)}>
                       <span css={css`
-                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                        font-size: clamp(0.75rem, 2.5vw, 0.85rem);
                         font-weight: 600;
-                        color: #333;
+                        color: #495057;
                       `}>
                         {meal.ingredients.length} ingredient{meal.ingredients.length !== 1 ? 's' : ''}
                       </span>
                       <span css={css`
-                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-                        color: #666;
+                        font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+                        color: #6c757d;
                         transition: transform 0.2s ease;
                         transform: rotate(${isCollapsed(meal.id || 0) ? '0deg' : '180deg'});
                       `}>
                         ▼
                       </span>
                     </div>
-                    
+                  </div>
+                  
+                  <div css={css`
+                    display: ${isCollapsed(meal.id || 0) ? 'none' : 'block'};
+                    padding: clamp(0.75rem, 3vw, 1rem);
+                    background: #ffffff;
+                    border-radius: 0 0 var(--border-radius) var(--border-radius);
+                  `}>
                     <div css={css`
-                      display: ${isCollapsed(meal.id || 0) ? 'none' : 'block'};
-                      
                       @media (min-width: 768px) {
                         display: block;
                       }
