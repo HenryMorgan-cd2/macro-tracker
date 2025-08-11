@@ -236,21 +236,11 @@ export const MealForm: React.FC<MealFormProps> = ({
   return (
     <form css={css`
       background: white;
-      padding: 2rem;
-      border-radius: 8px;
+      padding: var(--container-padding);
+      border-radius: var(--border-radius);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       max-width: 800px;
       margin: 0 auto;
-      
-      @media (max-width: 768px) {
-        padding: 1rem;
-        margin: 0 0.5rem;
-      }
-      
-      @media (max-width: 480px) {
-        padding: 0.75rem;
-        margin: 0 0.25rem;
-      }
     `} onSubmit={handleSubmit}>
       <h2>{initialData?.id ? 'Edit Meal' : 'Add New Meal'}</h2>
       
@@ -268,7 +258,7 @@ export const MealForm: React.FC<MealFormProps> = ({
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: var(--border-radius);
             font-size: 1rem;
             
             &:focus {
@@ -300,7 +290,7 @@ export const MealForm: React.FC<MealFormProps> = ({
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: var(--border-radius);
             font-size: 1rem;
             
             &:focus {
@@ -324,7 +314,7 @@ export const MealForm: React.FC<MealFormProps> = ({
           margin-bottom: 1rem;
           padding: 1rem;
           background: #f8f9fa;
-          border-radius: 8px;
+          border-radius: var(--border-radius);
           border: 1px solid #e9ecef;
         `}>
           <label css={css`
@@ -335,12 +325,12 @@ export const MealForm: React.FC<MealFormProps> = ({
           `}>Quick Start with Meal Template</label>
           <div css={css`
             display: flex;
+            flex-direction: column;
             gap: 1rem;
-            align-items: center;
             
-            @media (max-width: 480px) {
-              flex-direction: column;
-              align-items: stretch;
+            @media (min-width: 768px) {
+              flex-direction: row;
+              align-items: center;
             }
           `}>
             <select
@@ -348,7 +338,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                 flex: 1;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 1rem;
                 background: white;
                 
@@ -402,7 +392,7 @@ export const MealForm: React.FC<MealFormProps> = ({
             <div key={ingredient.key} css={css`
               background: #f8f9fa;
               padding: 1rem;
-              border-radius: 4px;
+              border-radius: var(--border-radius);
               border-left: 4px solid #007bff;
               margin-bottom: 0.5rem;
             `}>
@@ -415,14 +405,9 @@ export const MealForm: React.FC<MealFormProps> = ({
                 {/* Row 1: Name, Quantity, Actions */}
                 <div css={css`
                   display: grid;
-                  grid-template-columns: 2fr 1fr auto;
+                  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                   gap: 0.75rem;
                   align-items: end;
-                  
-                  @media (max-width: 480px) {
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                  }
                 `}>
                   <div css={css`
                     display: flex;
@@ -439,7 +424,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                         width: 100%;
                         padding: 0.5rem;
                         border: 1px solid #ddd;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         font-size: 0.875rem;
                         
                         &:focus {
@@ -477,19 +462,9 @@ export const MealForm: React.FC<MealFormProps> = ({
                 {/* Row 2: Macro Unit and Macros */}
                 <div css={css`
                   display: grid;
-                  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+                  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
                   gap: 0.75rem;
                   align-items: end;
-                  
-                  @media (max-width: 768px) {
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                  }
-                  
-                  @media (max-width: 480px) {
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                  }
                 `}>
                   <div css={css`
                     display: flex;
@@ -506,7 +481,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                         width: 100%;
                         padding: 0.5rem;
                         border: 1px solid #ddd;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         font-size: 0.875rem;
                         background: white;
                         
@@ -589,12 +564,13 @@ export const MealForm: React.FC<MealFormProps> = ({
         
         <div css={css`
           display: flex;
+          flex-direction: column;
           gap: 1rem;
           margin-top: 1rem;
-          align-items: center;
           
-          @media (max-width: 480px) {
-            flex-direction: column;
+          @media (min-width: 768px) {
+            flex-direction: row;
+            align-items: center;
           }
         `}>
           <Button 
@@ -622,7 +598,7 @@ export const MealForm: React.FC<MealFormProps> = ({
               css={css`
                 padding: 0.75rem 1.5rem;
                 border: 1px solid #007bff;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 1rem;
                 background-color: white;
                 color: #007bff;
@@ -661,8 +637,13 @@ export const MealForm: React.FC<MealFormProps> = ({
 
       <div css={css`
         display: flex;
+        flex-direction: column;
         gap: 1rem;
         margin-top: 2rem;
+        
+        @media (min-width: 768px) {
+          flex-direction: row;
+        }
       `}>
         <Button 
           buttonStyle="solid"

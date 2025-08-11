@@ -127,9 +127,9 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
       {/* Add New Template Section */}
       <div css={css`
         background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
+        padding: clamp(1rem, 4vw, 1.5rem);
+        border-radius: var(--border-radius);
+        margin-bottom: clamp(1.5rem, 5vw, 2rem);
       `}>
         <h3 css={css`
           margin: 0 0 1rem 0;
@@ -153,7 +153,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                 width: 100%;
                 padding: 0.5rem;
                 border: 1px solid #ddd;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 0.875rem;
                 
                 &:focus {
@@ -181,7 +181,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                 width: 100%;
                 padding: 0.5rem;
                 border: 1px solid #ddd;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 0.875rem;
                 
                 &:focus {
@@ -264,16 +264,16 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         {/* Column Headers */}
         <div css={css`
           display: grid;
-          grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
-          gap: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: var(--grid-gap);
           align-items: center;
-          padding: 0.5rem 1rem;
+          padding: clamp(0.5rem, 2vw, 1rem);
           background: #e9ecef;
-          border-radius: 4px;
+          border-radius: var(--border-radius);
           margin-bottom: 1rem;
           font-weight: 600;
           color: #333;
-          font-size: 0.875rem;
+          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
         `}>
           <div>Name</div>
           <div css={css`text-align: center;`}>Unit</div>
@@ -288,10 +288,10 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
         {templates.length === 0 ? (
           <div css={css`
             text-align: center;
-            padding: 2rem;
+            padding: clamp(1.5rem, 5vw, 2rem);
             color: #666;
             background: #f8f9fa;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
           `}>
             No ingredient templates yet. Add your first one above!
           </div>
@@ -308,14 +308,14 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                 <div key={template.id} css={css`
                   background: white;
                   border: 1px solid #e9ecef;
-                  border-radius: 8px;
-                  padding: 1rem;
+                  border-radius: var(--border-radius);
+                  padding: clamp(0.75rem, 3vw, 1rem);
                 `}>
                   {isEditing ? (
                     <div css={css`
                       display: grid;
-                      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr auto;
-                      gap: 1rem;
+                      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                      gap: var(--grid-gap);
                       align-items: end;
                     `}>
                       <div>
@@ -330,7 +330,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                             width: 100%;
                             padding: 0.5rem;
                             border: 1px solid #ddd;
-                            border-radius: 4px;
+                            border-radius: var(--border-radius);
                             font-size: 0.875rem;
                             
                             &:focus {
@@ -357,7 +357,7 @@ export const IngredientTemplateManager: React.FC<IngredientTemplateManagerProps>
                             width: 100%;
                             padding: 0.5rem;
                             border: 1px solid #ddd;
-                            border-radius: 4px;
+                            border-radius: var(--border-radius);
                             font-size: 0.875rem;
                             
                             &:focus {

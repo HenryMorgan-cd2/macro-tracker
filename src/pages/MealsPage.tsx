@@ -8,16 +8,16 @@ import { PageWrapper } from '../components/PageWrapper';
 
 const loadingMessage = css`
   text-align: center;
-  padding: 2rem;
-  font-size: 1.1rem;
+  padding: clamp(1.5rem, 5vw, 2rem);
+  font-size: clamp(1rem, 3vw, 1.1rem);
   color: #666;
 `;
 
 const errorMessage = css`
   background: #f8d7da;
   color: #721c24;
-  padding: 1rem;
-  border-radius: 4px;
+  padding: var(--container-padding);
+  border-radius: var(--border-radius);
   margin-bottom: 1rem;
   border: 1px solid #f5c6cb;
 `;

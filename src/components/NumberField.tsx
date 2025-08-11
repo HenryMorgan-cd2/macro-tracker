@@ -27,7 +27,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
       flex-direction: column;
     `}>
       <label css={css`
-        font-size: 0.75rem;
+        font-size: clamp(0.7rem, 2vw, 0.75rem);
         font-weight: 600;
         color: #666;
         margin-bottom: 0.25rem;
@@ -37,10 +37,10 @@ export const NumberField: React.FC<NumberFieldProps> = ({
       <input
         css={css`
           width: 100%;
-          padding: 0.5rem;
+          padding: clamp(0.4rem, 2vw, 0.5rem);
           border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 0.875rem;
+          border-radius: var(--border-radius);
+          font-size: clamp(0.8rem, 2.5vw, 0.875rem);
           
           &:focus {
             outline: none;

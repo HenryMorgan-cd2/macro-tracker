@@ -121,15 +121,15 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
   if (meals.length === 0) {
     return (
       <div css={css`
-        max-width: 1200px;
+        max-width: var(--container-max-width);
         margin: 0 auto;
-        padding: 2rem;
+        padding: var(--container-padding);
       `}>
         <div css={css`
           text-align: center;
-          padding: 3rem;
+          padding: clamp(2rem, 6vw, 3rem);
           color: #666;
-          font-size: 1.1rem;
+          font-size: clamp(1rem, 3vw, 1.1rem);
         `}>
           <h3>No meals yet</h3>
           <p>Add your first meal to start tracking your nutrition!</p>
@@ -140,48 +140,48 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
 
   return (
     <div css={css`
-      max-width: 1200px;
+      max-width: var(--container-max-width);
       margin: 0 auto;
-      padding: 2rem;
+      padding: var(--container-padding);
     `}>
       {dayGroups.map((dayGroup) => (
         <div key={dayGroup.date} css={css`
-          margin-bottom: 3rem;
+          margin-bottom: clamp(2rem, 6vw, 3rem);
         `}>
           <div css={css`
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
-            border-radius: 8px 8px 0 0;
+            padding: clamp(1rem, 4vw, 1.5rem);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
             margin-bottom: 0;
           `}>
             <h2 css={css`
-              font-size: 1.5rem;
+              font-size: clamp(1.25rem, 4vw, 1.5rem);
               font-weight: 700;
               margin: 0 0 0.5rem 0;
             `}>{dayGroup.dateLabel}</h2>
             <div css={css`
               display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 1rem;
+              grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+              gap: var(--grid-gap);
               margin-top: 1rem;
             `}>
               <div css={css`
                 text-align: center;
                 background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 6px;
+                padding: clamp(0.75rem, 3vw, 1rem);
+                border-radius: var(--border-radius);
                 
                 span:first-child {
                   display: block;
-                  font-size: 0.875rem;
+                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                   opacity: 0.9;
                   margin-bottom: 0.25rem;
                 }
                 
                 span:last-child {
                   display: block;
-                  font-size: 1.25rem;
+                  font-size: clamp(1rem, 3.5vw, 1.25rem);
                   font-weight: 700;
                 }
               `}>
@@ -191,19 +191,19 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
               <div css={css`
                 text-align: center;
                 background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 6px;
+                padding: clamp(0.75rem, 3vw, 1rem);
+                border-radius: var(--border-radius);
                 
                 span:first-child {
                   display: block;
-                  font-size: 0.875rem;
+                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                   opacity: 0.9;
                   margin-bottom: 0.25rem;
                 }
                 
                 span:last-child {
                   display: block;
-                  font-size: 1.25rem;
+                  font-size: clamp(1rem, 3.5vw, 1.25rem);
                   font-weight: 700;
                 }
               `}>
@@ -213,19 +213,19 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
               <div css={css`
                 text-align: center;
                 background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 6px;
+                padding: clamp(0.75rem, 3vw, 1rem);
+                border-radius: var(--border-radius);
                 
                 span:first-child {
                   display: block;
-                  font-size: 0.875rem;
+                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                   opacity: 0.9;
                   margin-bottom: 0.25rem;
                 }
                 
                 span:last-child {
                   display: block;
-                  font-size: 1.25rem;
+                  font-size: clamp(1rem, 3.5vw, 1.25rem);
                   font-weight: 700;
                 }
               `}>
@@ -235,19 +235,19 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
               <div css={css`
                 text-align: center;
                 background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 6px;
+                padding: clamp(0.75rem, 3vw, 1rem);
+                border-radius: var(--border-radius);
                 
                 span:first-child {
                   display: block;
-                  font-size: 0.875rem;
+                  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                   opacity: 0.9;
                   margin-bottom: 0.25rem;
                 }
                 
                 span:last-child {
                   display: block;
-                  font-size: 1.25rem;
+                  font-size: clamp(1rem, 3.5vw, 1.25rem);
                   font-weight: 700;
                 }
               `}>
@@ -259,7 +259,7 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
           
           <div css={css`
             background: white;
-            border-radius: 0 0 8px 8px;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
           `}>
@@ -275,27 +275,47 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                   }
                 `}>
                   <div css={css`
-                    padding: 1.5rem;
+                    padding: clamp(1rem, 4vw, 1.5rem);
                     border-bottom: 1px solid #eee;
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                    flex-direction: column;
+                    gap: 1rem;
+                    
+                    @media (min-width: 768px) {
+                      flex-direction: row;
+                      justify-content: space-between;
+                      align-items: center;
+                      gap: 0;
+                    }
                   `}>
-                    <div>
+                    <div css={css`
+                      flex: 1;
+                      min-width: 0;
+                    `}>
                       <h3 css={css`
-                        font-size: 1.25rem;
+                        font-size: clamp(1.1rem, 3.5vw, 1.25rem);
                         font-weight: 600;
                         color: #333;
                         margin: 0;
+                        word-wrap: break-word;
+                        overflow-wrap: break-word;
                       `}>{meal.name}</h3>
                       <p css={css`
                         color: #666;
-                        font-size: 0.9rem;
+                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                        margin-top: 0.25rem;
                       `}>{formatDateTime(meal.datetime)}</p>
                     </div>
                     <div css={css`
                       display: flex;
+                      flex-wrap: wrap;
                       gap: 0.5rem;
+                      justify-content: center;
+                      
+                      @media (min-width: 768px) {
+                        justify-content: flex-end;
+                        flex-shrink: 0;
+                      }
                     `}>
                       <Button
                         buttonStyle="solid"
@@ -325,26 +345,28 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                   </div>
                   
                   <div css={css`
-                    padding: 1.5rem;
+                    padding: clamp(1rem, 4vw, 1.5rem);
                   `}>
                     <h4>Ingredients</h4>
                     <div css={css`
                       display: grid;
                       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                      gap: 1rem;
+                      gap: var(--grid-gap);
                       margin-top: 1rem;
                     `}>
                       {meal.ingredients.map((ingredient, index) => (
                         <div key={index} css={css`
                           background: #f8f9fa;
                           padding: 1rem;
-                          border-radius: 4px;
+                          border-radius: var(--border-radius);
                           border-left: 4px solid #007bff;
                         `}>
                           <div css={css`
                             font-weight: 600;
                             color: #333;
                             margin-bottom: 0.5rem;
+                            word-wrap: break-word;
+                            overflow-wrap: break-word;
                           `}>
                             {ingredient.name} {ingredient.macroUnit === 'per_100g' 
                               ? `(${ingredient.quantity}g)` 
@@ -355,9 +377,9 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                           </div>
                           <div css={css`
                             display: grid;
-                            grid-template-columns: repeat(4, 1fr);
+                            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
                             gap: 0.5rem;
-                            font-size: 0.875rem;
+                            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                           `}>
                             <div css={css`
                               text-align: center;
@@ -447,7 +469,7 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                           {ingredient.quantity > 1 && (
                             <div css={css`
                               margin-top: 0.5rem;
-                              font-size: 0.75rem;
+                              font-size: clamp(0.65rem, 2vw, 0.75rem);
                               color: #666;
                               text-align: center;
                             `}>
@@ -466,25 +488,25 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                       padding-top: 1rem;
                       border-top: 2px solid #eee;
                       display: grid;
-                      grid-template-columns: repeat(4, 1fr);
-                      gap: 1rem;
+                      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                      gap: var(--grid-gap);
                     `}>
                       <div css={css`
                         text-align: center;
-                        padding: 1rem;
+                        padding: clamp(0.75rem, 3vw, 1rem);
                         background: #e9ecef;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         
                         span:first-child {
                           display: block;
                           font-weight: 600;
                           color: #666;
-                          font-size: 0.875rem;
+                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                         }
                         
                         span:last-child {
                           display: block;
-                          font-size: 1.25rem;
+                          font-size: clamp(1rem, 3.5vw, 1.25rem);
                           font-weight: 700;
                           color: #333;
                         }
@@ -494,20 +516,20 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                       </div>
                       <div css={css`
                         text-align: center;
-                        padding: 1rem;
+                        padding: clamp(0.75rem, 3vw, 1rem);
                         background: #e9ecef;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         
                         span:first-child {
                           display: block;
                           font-weight: 600;
                           color: #666;
-                          font-size: 0.875rem;
+                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                         }
                         
                         span:last-child {
                           display: block;
-                          font-size: 1.25rem;
+                          font-size: clamp(1rem, 3.5vw, 1.25rem);
                           font-weight: 700;
                           color: #333;
                         }
@@ -517,20 +539,20 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                       </div>
                       <div css={css`
                         text-align: center;
-                        padding: 1rem;
+                        padding: clamp(0.75rem, 3vw, 1rem);
                         background: #e9ecef;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         
                         span:first-child {
                           display: block;
                           font-weight: 600;
                           color: #666;
-                          font-size: 0.875rem;
+                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                         }
                         
                         span:last-child {
                           display: block;
-                          font-size: 1.25rem;
+                          font-size: clamp(1rem, 3.5vw, 1.25rem);
                           font-weight: 700;
                           color: #333;
                         }
@@ -540,20 +562,20 @@ export const MealList: React.FC<MealListProps> = ({ meals, onEdit, onDelete, onD
                       </div>
                       <div css={css`
                         text-align: center;
-                        padding: 1rem;
+                        padding: clamp(0.75rem, 3vw, 1rem);
                         background: #e9ecef;
-                        border-radius: 4px;
+                        border-radius: var(--border-radius);
                         
                         span:first-child {
                           display: block;
                           font-weight: 600;
                           color: #666;
-                          font-size: 0.875rem;
+                          font-size: clamp(0.75rem, 2.5vw, 0.875rem);
                         }
                         
                         span:last-child {
                           display: block;
-                          font-size: 1.25rem;
+                          font-size: clamp(1rem, 3.5vw, 1.25rem);
                           font-weight: 700;
                           color: #333;
                         }

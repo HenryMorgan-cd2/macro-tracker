@@ -144,9 +144,9 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
       {/* Add New Template Section */}
       <div css={css`
         background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
+        padding: clamp(1rem, 4vw, 1.5rem);
+        border-radius: var(--border-radius);
+        margin-bottom: clamp(1.5rem, 5vw, 2rem);
       `}>
         <h3 css={css`
           margin: 0 0 1rem 0;
@@ -155,8 +155,8 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
         
         <div css={css`
           display: grid;
-          grid-template-columns: 2fr 2fr auto;
-          gap: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: var(--grid-gap);
           align-items: end;
           margin-bottom: 1rem;
         `}>
@@ -172,7 +172,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                 width: 100%;
                 padding: 0.5rem;
                 border: 1px solid #ddd;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 0.875rem;
                 
                 &:focus {
@@ -200,7 +200,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                 width: 100%;
                 padding: 0.5rem;
                 border: 1px solid #ddd;
-                border-radius: 4px;
+                border-radius: var(--border-radius);
                 font-size: 0.875rem;
                 
                 &:focus {
@@ -242,7 +242,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
             max-height: 200px;
             overflow-y: auto;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: var(--border-radius);
             padding: 0.5rem;
             background: white;
           `}>
@@ -257,7 +257,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                   gap: 0.5rem;
                   padding: 0.5rem;
                   border: 1px solid ${isSelected ? '#007bff' : '#ddd'};
-                  border-radius: 4px;
+                  border-radius: var(--border-radius);
                   background: ${isSelected ? '#f8f9ff' : 'white'};
                   cursor: pointer;
                   font-size: 0.875rem;
@@ -293,7 +293,7 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                         width: 60px;
                         padding: 0.25rem;
                         border: 1px solid #ddd;
-                        border-radius: 2px;
+                        border-radius: var(--border-radius);
                         font-size: 0.75rem;
                         text-align: center;
                         

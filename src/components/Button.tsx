@@ -25,7 +25,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const buttonStyles = css`
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     display: inline-flex;
@@ -38,14 +38,14 @@ export const Button: React.FC<ButtonProps> = ({
     
     ${size === 'large' 
       ? css`
-        padding: 12px 24px;
-        font-size: 16px;
-        min-height: 48px;
+        padding: clamp(10px, 3vw, 12px) clamp(20px, 5vw, 24px);
+        font-size: clamp(14px, 3.5vw, 16px);
+        min-height: clamp(44px, 10vw, 48px);
       `
       : css`
-        padding: 8px 16px;
-        font-size: 14px;
-        min-height: 36px;
+        padding: clamp(8px, 2.5vw, 8px) clamp(14px, 4vw, 16px);
+        font-size: clamp(13px, 3vw, 14px);
+        min-height: clamp(44px, 8vw, 36px);
       `
     }
     
