@@ -1,4 +1,4 @@
-import { Meal, Ingredient, IngredientTemplate } from './types';
+import { Meal, Ingredient, IngredientTemplate, MealTemplate } from './types';
 
 const API_BASE = '/api';
 
@@ -92,5 +92,45 @@ export const api = {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete ingredient template');
+  },
+
+  // Meal Templates
+  async getMealTemplates(): Promise<MealTemplate[]> {
+    const response = await fetch(`${API_BASE}/meal-templates`);
+    if (!response.ok) throw new Error('Failed to fetch meal templates');
+    return response.json();
+  },
+
+  async getMealTemplate(id: number): Promise<MealTemplate> {
+    const response = await fetch(`${API_BASE}/meal-templates/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch meal template');
+    return response.json();
+  },
+
+  async createMealTemplate(template: Omit<MealTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<MealTemplate> {
+    const response = await fetch(`${API_BASE}/meal-templates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(template),
+    });
+    if (!response.ok) throw new Error('Failed to create meal template');
+    return response.json();
+  },
+
+  async updateMealTemplate(id: number, template: Omit<MealTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<MealTemplate> {
+    const response = await fetch(`${API_BASE}/meal-templates/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(template),
+    });
+    if (!response.ok) throw new Error('Failed to update meal template');
+    return response.json();
+  },
+
+  async deleteMealTemplate(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE}/meal-templates/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete meal template');
   },
 };

@@ -74,6 +74,13 @@ export function SiteWrapper({ children }: SiteWrapperProps) {
             >
               Ingredient Templates
             </Link>
+            <Link 
+              to="/meal-templates" 
+              css={navLink} 
+              className={location.pathname === '/meal-templates' ? 'active' : ''}
+            >
+              Meal Templates
+            </Link>
           </div>
           
           <Button

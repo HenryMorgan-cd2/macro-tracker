@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React, { useState, useEffect } from 'react';
 import { css } from '@emotion/react';
-import { Meal, Ingredient, IngredientTemplate } from '../types';
+import { Meal, Ingredient, IngredientTemplate, MealTemplate } from '../types';
 import { NumberField } from './NumberField';
 import { Button } from './Button';
 import { api } from '../api';
@@ -11,6 +11,7 @@ interface MealFormProps {
   onAfterSubmit: () => void;
   onCancel: () => void;
   ingredientTemplates: IngredientTemplate[];
+  mealTemplates: MealTemplate[];
   onSaveAsTemplate: (template: Omit<IngredientTemplate, 'id'>) => void;
 }
 
@@ -29,7 +30,8 @@ export const MealForm: React.FC<MealFormProps> = ({
   onAfterSubmit, 
   onCancel, 
   ingredientTemplates,
-  onSaveAsTemplate 
+  onSaveAsTemplate,
+  mealTemplates
 }) => {
   // Helper function to format datetime for HTML datetime-local input
   const formatDateTimeForInput = (datetime: string) => {
@@ -140,6 +142,24 @@ export const MealForm: React.FC<MealFormProps> = ({
     setFormData(prev => ({
       ...prev,
       ingredients: [...prev.ingredients, newIngredient],
+    }));
+  };
+
+  const addMealFromTemplate = (template: MealTemplate) => {
+    const newIngredients: EditableIngredient[] = template.ingredients.map(ingredient => ({
+      key: Math.random().toString(36).substr(2, 9),
+      name: ingredient.name,
+      quantity: 1, // Default to 1 unit
+      carbs: ingredient.carbs,
+      fat: ingredient.fat,
+      protein: ingredient.protein,
+      kcal: ingredient.kcal,
+      macroUnit: ingredient.macroUnit,
+    }));
+    
+    setFormData(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, ...newIngredients],
     }));
   };
 
@@ -297,6 +317,74 @@ export const MealForm: React.FC<MealFormProps> = ({
           required
         />
       </div>
+
+      {/* Meal Template Selector */}
+      {mealTemplates.length > 0 && (
+        <div css={css`
+          margin-bottom: 1rem;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 1px solid #e9ecef;
+        `}>
+          <label css={css`
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+          `}>Quick Start with Meal Template</label>
+          <div css={css`
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            
+            @media (max-width: 480px) {
+              flex-direction: column;
+              align-items: stretch;
+            }
+          `}>
+            <select
+              css={css`
+                flex: 1;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 1rem;
+                background: white;
+                
+                &:focus {
+                  outline: none;
+                  border-color: #007bff;
+                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                }
+              `}
+              onChange={(e) => {
+                const template = mealTemplates.find(t => t.name === e.target.value);
+                if (template) {
+                  addMealFromTemplate(template);
+                  e.target.value = ''; // Reset selection
+                }
+              }}
+              value=""
+            >
+              <option value="">Select a meal template...</option>
+              {mealTemplates.map(template => (
+                <option key={template.id || template.name} value={template.name}>
+                  {template.name} ({template.ingredients.length} ingredients)
+                </option>
+              ))}
+            </select>
+            <Button
+              buttonStyle="outline"
+              color="#007bff"
+              size="regular"
+              onClick={() => window.open('/meal-templates', '_blank')}
+            >
+              Manage Templates
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div css={css`
         margin-bottom: 1rem;

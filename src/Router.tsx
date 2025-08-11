@@ -3,6 +3,7 @@ import { MealsPage } from './pages/MealsPage';
 import { AddMealPage } from './pages/AddMealPage';
 import { EditMealPage } from './pages/EditMealPage';
 import { TemplatesPage } from './pages/TemplatesPage';
+import { MealTemplatesPage } from './pages/MealTemplatesPage';
 
 export function Router() {
   return (
@@ -11,6 +12,7 @@ export function Router() {
       <Route path="/add-meal" element={<AddMealPage />} />
       <Route path="/edit-meal/:id" element={<EditMealPage />} />
       <Route path="/templates" element={<TemplatesPage />} />
+      <Route path="/meal-templates" element={<MealTemplatesPage />} />
     </Routes>
   );
 }

@@ -19,6 +19,15 @@ export interface IngredientTemplate {
   macroUnit: 'per_unit' | 'per_100g';
 }
 
+export interface MealTemplate {
+  id?: number;
+  name: string;
+  description?: string;
+  ingredients: IngredientTemplate[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Meal {
   id?: number;
   name: string;

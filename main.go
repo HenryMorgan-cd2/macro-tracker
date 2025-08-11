@@ -48,6 +48,21 @@ type MealIngredient struct {
 	IngredientID int `json:"ingredient_id"`
 }
 
+type MealTemplate struct {
+	ID          int           `json:"id,omitempty"`
+	Name        string        `json:"name"`
+	Description string        `json:"description,omitempty"`
+	Ingredients []IngredientTemplate `json:"ingredients"`
+	CreatedAt   string        `json:"createdAt,omitempty"`
+	UpdatedAt   string        `json:"updatedAt,omitempty"`
+}
+
+type MealTemplateIngredient struct {
+	MealTemplateID int `json:"meal_template_id"`
+	IngredientTemplateID int `json:"ingredient_template_id"`
+	Quantity float64 `json:"quantity"`
+}
+
 var db *sql.DB
 
 func main() {
@@ -120,6 +135,11 @@ func main() {
 		api.POST("/ingredient-templates", createIngredientTemplate)
 		api.PUT("/ingredient-templates/:id", updateIngredientTemplate)
 		api.DELETE("/ingredient-templates/:id", deleteIngredientTemplate)
+		api.GET("/meal-templates", getMealTemplates)
+		api.GET("/meal-templates/:id", getMealTemplate)
+		api.POST("/meal-templates", createMealTemplate)
+		api.PUT("/meal-templates/:id", updateMealTemplate)
+		api.DELETE("/meal-templates/:id", deleteMealTemplate)
 	}
 
 	port := os.Getenv("PORT")
@@ -187,6 +207,33 @@ func initDB() error {
 			macro_unit VARCHAR(20) NOT NULL DEFAULT 'per_unit',
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create meal_templates table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS meal_templates (
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			description TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create meal_template_ingredients junction table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS meal_template_ingredients (
+			meal_template_id INTEGER REFERENCES meal_templates(id) ON DELETE CASCADE,
+			ingredient_template_id INTEGER REFERENCES ingredient_templates(id) ON DELETE CASCADE,
+			quantity DECIMAL(8,2) NOT NULL DEFAULT 1,
+			PRIMARY KEY (meal_template_id, ingredient_template_id)
 		)
 	`)
 	if err != nil {
@@ -610,4 +657,246 @@ func deleteIngredientTemplate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Ingredient template deleted successfully"})
+}
+
+// Meal Template handlers
+func getMealTemplates(c *gin.Context) {
+	rows, err := db.Query(`
+		SELECT mt.id, mt.name, mt.description, mt.created_at, mt.updated_at,
+		       it.id, it.name, it.carbs, it.fat, it.protein, it.kcal, it.macro_unit,
+		       mti.quantity
+		FROM meal_templates mt
+		LEFT JOIN meal_template_ingredients mti ON mt.id = mti.meal_template_id
+		LEFT JOIN ingredient_templates it ON mti.ingredient_template_id = it.id
+		ORDER BY mt.name, it.name
+	`)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	templatesMap := make(map[int]*MealTemplate)
+	for rows.Next() {
+		var templateID int
+		var templateName, templateDescription, createdAt, updatedAt sql.NullString
+		var ingredientID sql.NullInt64
+		var ingredientName sql.NullString
+		var carbs, fat, protein, kcal sql.NullFloat64
+		var macroUnit sql.NullString
+		var quantity sql.NullFloat64
+
+		err := rows.Scan(&templateID, &templateName, &templateDescription, &createdAt, &updatedAt,
+			&ingredientID, &ingredientName, &carbs, &fat, &protein, &kcal, &macroUnit, &quantity)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		template, exists := templatesMap[templateID]
+		if !exists {
+			template = &MealTemplate{
+				ID:          templateID,
+				Name:        templateName.String,
+				Description: templateDescription.String,
+				Ingredients: []IngredientTemplate{},
+				CreatedAt:   createdAt.String,
+				UpdatedAt:   updatedAt.String,
+			}
+			templatesMap[templateID] = template
+		}
+
+		if ingredientID.Valid {
+			ingredient := IngredientTemplate{
+				ID:         int(ingredientID.Int64),
+				Name:       ingredientName.String,
+				Carbs:      carbs.Float64,
+				Fat:        fat.Float64,
+				Protein:    protein.Float64,
+				Kcal:       kcal.Float64,
+				MacroUnit:  macroUnit.String,
+			}
+			template.Ingredients = append(template.Ingredients, ingredient)
+		}
+	}
+
+	templates := make([]MealTemplate, 0, len(templatesMap))
+	for _, template := range templatesMap {
+		templates = append(templates, *template)
+	}
+
+	c.JSON(http.StatusOK, templates)
+}
+
+func getMealTemplate(c *gin.Context) {
+	id := c.Param("id")
+	
+	rows, err := db.Query(`
+		SELECT mt.id, mt.name, mt.description, mt.created_at, mt.updated_at,
+		       it.id, it.name, it.carbs, it.fat, it.protein, it.kcal, it.macro_unit,
+		       mti.quantity
+		FROM meal_templates mt
+		LEFT JOIN meal_template_ingredients mti ON mt.id = mti.meal_template_id
+		LEFT JOIN ingredient_templates it ON mti.ingredient_template_id = it.id
+		WHERE mt.id = $1
+		ORDER BY it.name
+	`, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var template *MealTemplate
+	for rows.Next() {
+		var templateID int
+		var templateName, templateDescription, createdAt, updatedAt sql.NullString
+		var ingredientID sql.NullInt64
+		var ingredientName sql.NullString
+		var carbs, fat, protein, kcal sql.NullFloat64
+		var macroUnit sql.NullString
+		var quantity sql.NullFloat64
+
+		err := rows.Scan(&templateID, &templateName, &templateDescription, &createdAt, &updatedAt,
+			&ingredientID, &ingredientName, &carbs, &fat, &protein, &kcal, &macroUnit, &quantity)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if template == nil {
+			template = &MealTemplate{
+				ID:          templateID,
+				Name:        templateName.String,
+				Description: templateDescription.String,
+				Ingredients: []IngredientTemplate{},
+				CreatedAt:   createdAt.String,
+				UpdatedAt:   updatedAt.String,
+			}
+		}
+
+		if ingredientID.Valid {
+			ingredient := IngredientTemplate{
+				ID:         int(ingredientID.Int64),
+				Name:       ingredientName.String,
+				Carbs:      carbs.Float64,
+				Fat:        fat.Float64,
+				Protein:    protein.Float64,
+				Kcal:       kcal.Float64,
+				MacroUnit:  macroUnit.String,
+				CreatedAt:  "",
+				UpdatedAt:  "",
+			}
+			template.Ingredients = append(template.Ingredients, ingredient)
+		}
+	}
+
+	if template == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Meal template not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, template)
+}
+
+func createMealTemplate(c *gin.Context) {
+	var template MealTemplate
+	if err := c.ShouldBindJSON(&template); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback()
+
+	// Insert meal template
+	var templateID int
+	err = tx.QueryRow("INSERT INTO meal_templates (name, description) VALUES ($1, $2) RETURNING id", 
+		template.Name, template.Description).Scan(&templateID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Insert meal template ingredients
+	for _, ingredient := range template.Ingredients {
+		_, err = tx.Exec("INSERT INTO meal_template_ingredients (meal_template_id, ingredient_template_id, quantity) VALUES ($1, $2, $3)", 
+			templateID, ingredient.ID, 1.0) // Default quantity to 1
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	template.ID = templateID
+	c.JSON(http.StatusCreated, template)
+}
+
+func updateMealTemplate(c *gin.Context) {
+	id := c.Param("id")
+	var template MealTemplate
+	if err := c.ShouldBindJSON(&template); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer tx.Rollback()
+
+	// Update meal template
+	_, err = tx.Exec("UPDATE meal_templates SET name = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", 
+		template.Name, template.Description, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Delete existing meal template ingredients
+	_, err = tx.Exec("DELETE FROM meal_template_ingredients WHERE meal_template_id = $1", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Insert new meal template ingredients
+	for _, ingredient := range template.Ingredients {
+		_, err = tx.Exec("INSERT INTO meal_template_ingredients (meal_template_id, ingredient_template_id, quantity) VALUES ($1, $2, $3)", 
+			id, ingredient.ID, 1.0) // Default quantity to 1
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, template)
+}
+
+func deleteMealTemplate(c *gin.Context) {
+	id := c.Param("id")
+	
+	_, err := db.Exec("DELETE FROM meal_templates WHERE id = $1", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Meal template deleted successfully"})
 }

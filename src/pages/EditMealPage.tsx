@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IngredientTemplate, Meal } from '../types';
+import { IngredientTemplate, Meal, MealTemplate } from '../types';
 import { api } from '../api';
 import { MealForm } from '../components/MealForm';
 import { PageWrapper } from '../components/PageWrapper';
 
 export function EditMealPage() {
   const [ingredientTemplates, setIngredientTemplates] = useState<IngredientTemplate[]>([]);
+  const [mealTemplates, setMealTemplates] = useState<MealTemplate[]>([]);
   const [meal, setMeal] = useState<Meal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export function EditMealPage() {
     if (id) {
       loadMeal(parseInt(id));
     }
-    loadIngredientTemplates();
+    loadData();
   }, [id]);
 
   const loadMeal = async (mealId: number) => {
@@ -38,12 +39,16 @@ export function EditMealPage() {
     }
   };
 
-  const loadIngredientTemplates = async () => {
+  const loadData = async () => {
     try {
-      const templates = await api.getIngredientTemplates();
-      setIngredientTemplates(templates);
+      const [ingredients, meals] = await Promise.all([
+        api.getIngredientTemplates(),
+        api.getMealTemplates()
+      ]);
+      setIngredientTemplates(ingredients);
+      setMealTemplates(meals);
     } catch (err) {
-      console.error('Failed to load ingredient templates:', err);
+      console.error('Failed to load data:', err);
     }
   };
 
@@ -95,6 +100,7 @@ export function EditMealPage() {
         onAfterSubmit={handleAfterSubmit}
         onCancel={handleCancel}
         ingredientTemplates={ingredientTemplates}
+        mealTemplates={mealTemplates}
         onSaveAsTemplate={handleSaveIngredientTemplate}
       />
     </PageWrapper>

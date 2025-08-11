@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { IngredientTemplate } from '../types';
+import { IngredientTemplate, MealTemplate } from '../types';
 import { MealForm } from '../components/MealForm';
 import { PageWrapper } from '../components/PageWrapper';
 import { api } from '../api';
 
 export function AddMealPage() {
   const [ingredientTemplates, setIngredientTemplates] = useState<IngredientTemplate[]>([]);
+  const [mealTemplates, setMealTemplates] = useState<MealTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -16,18 +17,22 @@ export function AddMealPage() {
   const duplicateMeal = location.state?.duplicateMeal;
 
   useEffect(() => {
-    loadIngredientTemplates();
+    loadData();
   }, []);
 
-  const loadIngredientTemplates = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const templates = await api.getIngredientTemplates();
-      setIngredientTemplates(templates);
+      const [ingredients, meals] = await Promise.all([
+        api.getIngredientTemplates(),
+        api.getMealTemplates()
+      ]);
+      setIngredientTemplates(ingredients);
+      setMealTemplates(meals);
     } catch (err) {
-      console.error('Failed to load ingredient templates:', err);
-      setError('Failed to load ingredient templates');
+      console.error('Failed to load data:', err);
+      setError('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -54,7 +59,7 @@ export function AddMealPage() {
   if (loading) {
     return (
       <PageWrapper title="Add New Meal" subtitle="Loading...">
-        <div>Loading ingredient templates...</div>
+        <div>Loading data...</div>
       </PageWrapper>
     );
   }
@@ -63,7 +68,7 @@ export function AddMealPage() {
     return (
       <PageWrapper title="Add New Meal" subtitle="Error">
         <div style={{ color: 'red' }}>{error}</div>
-        <button onClick={loadIngredientTemplates}>Retry</button>
+        <button onClick={loadData}>Retry</button>
       </PageWrapper>
     );
   }
@@ -78,6 +83,7 @@ export function AddMealPage() {
         onAfterSubmit={handleAfterSubmit}
         onCancel={handleCancel}
         ingredientTemplates={ingredientTemplates}
+        mealTemplates={mealTemplates}
         onSaveAsTemplate={handleSaveIngredientTemplate}
       />
     </PageWrapper>
