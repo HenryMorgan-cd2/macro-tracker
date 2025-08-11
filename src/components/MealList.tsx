@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import React from 'react';
+import React, { useState } from 'react';
 import { css } from '@emotion/react';
 import { Meal, DailyTargets } from '../types';
 import { Button } from './Button';
@@ -32,6 +32,29 @@ export const MealList: React.FC<MealListProps> = ({
   onDelete, 
   onDuplicate 
 }) => {
+  // Initialize with all meals collapsed by default
+  const [collapsedMeals, setCollapsedMeals] = useState<Set<number>>(() => {
+    const initialCollapsed = new Set<number>();
+    meals.forEach(meal => {
+      if (meal.id) {
+        initialCollapsed.add(meal.id);
+      }
+    });
+    return initialCollapsed;
+  });
+
+  const toggleMealCollapse = (mealId: number) => {
+    const newCollapsed = new Set(collapsedMeals);
+    if (newCollapsed.has(mealId)) {
+      newCollapsed.delete(mealId);
+    } else {
+      newCollapsed.add(mealId);
+    }
+    setCollapsedMeals(newCollapsed);
+  };
+
+  const isCollapsed = (mealId: number) => collapsedMeals.has(mealId);
+
   const calculateTotals = (ingredients: Meal['ingredients']) => {
     return ingredients.reduce(
       (totals, ingredient) => {
@@ -479,148 +502,194 @@ export const MealList: React.FC<MealListProps> = ({
                     background: #ffffff;
                     border-radius: 0 0 var(--border-radius) var(--border-radius);
                   `}>
+                    {/* Collapsible ingredients section */}
                     <div css={css`
-                      display: grid;
-                      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                      gap: 0.75rem;
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      margin-bottom: 0.75rem;
+                      padding: 0.5rem;
+                      background: #f8f9fa;
+                      border-radius: var(--border-radius);
+                      border: 1px solid #e9ecef;
+                      cursor: pointer;
+                      transition: background-color 0.2s ease;
+                      
+                      &:hover {
+                        background: #e9ecef;
+                      }
+                      
+                      @media (min-width: 768px) {
+                        display: none;
+                      }
+                    `} onClick={() => toggleMealCollapse(meal.id || 0)}>
+                      <span css={css`
+                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                        font-weight: 600;
+                        color: #333;
+                      `}>
+                        {meal.ingredients.length} ingredient{meal.ingredients.length !== 1 ? 's' : ''}
+                      </span>
+                      <span css={css`
+                        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                        color: #666;
+                        transition: transform 0.2s ease;
+                        transform: rotate(${isCollapsed(meal.id || 0) ? '0deg' : '180deg'});
+                      `}>
+                        ▼
+                      </span>
+                    </div>
+                    
+                    <div css={css`
+                      display: ${isCollapsed(meal.id || 0) ? 'none' : 'block'};
+                      
+                      @media (min-width: 768px) {
+                        display: block;
+                      }
                     `}>
-                      {meal.ingredients.map((ingredient, index) => (
-                        <div key={index} css={css`
-                          background: #f8f9fa;
-                          padding: 0.75rem;
-                          border-radius: var(--border-radius);
-                          border-left: 3px solid #007bff;
-                          border: 1px solid #e9ecef;
-                        `}>
-                          <div css={css`
-                            font-weight: 600;
-                            color: #333;
-                            margin-bottom: 0.5rem;
-                            word-wrap: break-word;
-                            overflow-wrap: break-word;
-                            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-                          `}>
-                            {ingredient.name} {ingredient.macroUnit === 'per_100g' 
-                              ? `(${ingredient.quantity}g)` 
-                              : ingredient.quantity > 1 
-                                ? ` x ${ingredient.quantity}` 
-                                : ''
-                            }
-                          </div>
-                          <div css={css`
-                            display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-                            gap: 0.5rem;
-                            font-size: clamp(0.7rem, 2vw, 0.8rem);
+                      <div css={css`
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                        gap: 0.75rem;
+                      `}>
+                        {meal.ingredients.map((ingredient, index) => (
+                          <div key={index} css={css`
+                            background: #f8f9fa;
+                            padding: 0.75rem;
+                            border-radius: var(--border-radius);
+                            border-left: 3px solid #007bff;
+                            border: 1px solid #e9ecef;
                           `}>
                             <div css={css`
-                              text-align: center;
-                              
-                              span:first-child {
-                                display: block;
-                                font-weight: 600;
-                                color: #666;
-                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
-                              }
-                              
-                              span:last-child {
-                                color: #333;
-                                font-size: clamp(0.7rem, 2vw, 0.8rem);
-                              }
+                              font-weight: 600;
+                              color: #333;
+                              margin-bottom: 0.5rem;
+                              word-wrap: break-word;
+                              overflow-wrap: break-word;
+                              font-size: clamp(0.8rem, 2.5vw, 0.9rem);
                             `}>
-                              <span>Carbs</span>
-                              <span>{(() => {
-                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                  return (ingredient.carbs * ingredient.quantity / 100).toFixed(1);
-                                }
-                                return (ingredient.carbs * ingredient.quantity).toFixed(1);
-                              })()}g</span>
+                              {ingredient.name} {ingredient.macroUnit === 'per_100g' 
+                                ? `(${ingredient.quantity}g)` 
+                                : ingredient.quantity > 1 
+                                  ? ` x ${ingredient.quantity}` 
+                                  : ''
+                              }
                             </div>
                             <div css={css`
-                              text-align: center;
-                              
-                              span:first-child {
-                                display: block;
-                                font-weight: 600;
-                                color: #666;
-                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
-                              }
-                              
-                              span:last-child {
-                                color: #333;
-                                font-size: clamp(0.7rem, 2vw, 0.8rem);
-                              }
+                              display: grid;
+                              grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                              gap: 0.5rem;
+                              font-size: clamp(0.7rem, 2vw, 0.8rem);
                             `}>
-                              <span>Fat</span>
-                              <span>{(() => {
-                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                  return (ingredient.fat * ingredient.quantity / 100).toFixed(1);
+                              <div css={css`
+                                text-align: center;
+                                
+                                span:first-child {
+                                  display: block;
+                                  font-weight: 600;
+                                  color: #666;
+                                  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
                                 }
-                                return (ingredient.fat * ingredient.quantity).toFixed(1);
-                              })()}g</span>
+                                
+                                span:last-child {
+                                  color: #333;
+                                  font-size: clamp(0.7rem, 2vw, 0.8rem);
+                                }
+                              `}>
+                                <span>Carbs</span>
+                                <span>{(() => {
+                                  if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                    return (ingredient.carbs * ingredient.quantity / 100).toFixed(1);
+                                  }
+                                  return (ingredient.carbs * ingredient.quantity).toFixed(1);
+                                })()}g</span>
+                              </div>
+                              <div css={css`
+                                text-align: center;
+                                
+                                span:first-child {
+                                  display: block;
+                                  font-weight: 600;
+                                  color: #666;
+                                  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                                }
+                                
+                                span:last-child {
+                                  color: #333;
+                                  font-size: clamp(0.7rem, 2vw, 0.8rem);
+                                }
+                              `}>
+                                <span>Fat</span>
+                                <span>{(() => {
+                                  if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                    return (ingredient.fat * ingredient.quantity / 100).toFixed(1);
+                                  }
+                                  return (ingredient.fat * ingredient.quantity).toFixed(1);
+                                })()}g</span>
+                              </div>
+                              <div css={css`
+                                text-align: center;
+                                
+                                span:first-child {
+                                  display: block;
+                                  font-weight: 600;
+                                  color: #666;
+                                  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                                }
+                                
+                                span:last-child {
+                                  color: #333;
+                                  font-size: clamp(0.7rem, 2vw, 0.8rem);
+                                }
+                              `}>
+                                <span>Protein</span>
+                                <span>{(() => {
+                                  if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                    return (ingredient.protein * ingredient.quantity / 100).toFixed(1);
+                                  }
+                                  return (ingredient.protein * ingredient.quantity).toFixed(1);
+                                })()}g</span>
+                              </div>
+                              <div css={css`
+                                text-align: center;
+                                
+                                span:first-child {
+                                  display: block;
+                                  font-weight: 600;
+                                  color: #666;
+                                  font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                                }
+                                
+                                span:last-child {
+                                  color: #333;
+                                  font-size: clamp(0.7rem, 2vw, 0.8rem);
+                                }
+                              `}>
+                                <span>kcal</span>
+                                <span>{(() => {
+                                  if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
+                                    return (ingredient.kcal * ingredient.quantity / 100).toFixed(0);
+                                  }
+                                  return (ingredient.kcal * ingredient.quantity).toFixed(0);
+                                })()}</span>
+                              </div>
                             </div>
-                            <div css={css`
-                              text-align: center;
-                              
-                              span:first-child {
-                                display: block;
-                                font-weight: 600;
+                            {ingredient.quantity > 1 && (
+                              <div css={css`
+                                margin-top: 0.5rem;
+                                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
                                 color: #666;
-                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
-                              }
-                              
-                              span:last-child {
-                                color: #333;
-                                font-size: clamp(0.7rem, 2vw, 0.8rem);
-                              }
-                            `}>
-                              <span>Protein</span>
-                              <span>{(() => {
-                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                  return (ingredient.protein * ingredient.quantity / 100).toFixed(1);
+                                text-align: center;
+                              `}>
+                                {ingredient.macroUnit === 'per_100g' 
+                                  ? `Per 100g: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
+                                  : `Per unit: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
                                 }
-                                return (ingredient.protein * ingredient.quantity).toFixed(1);
-                              })()}g</span>
-                            </div>
-                            <div css={css`
-                              text-align: center;
-                              
-                              span:first-child {
-                                display: block;
-                                font-weight: 600;
-                                color: #666;
-                                font-size: clamp(0.65rem, 1.8vw, 0.75rem);
-                              }
-                              
-                              span:last-child {
-                                color: #333;
-                                font-size: clamp(0.7rem, 2vw, 0.8rem);
-                              }
-                            `}>
-                              <span>kcal</span>
-                              <span>{(() => {
-                                if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                  return (ingredient.kcal * ingredient.quantity / 100).toFixed(0);
-                                }
-                                return (ingredient.kcal * ingredient.quantity).toFixed(0);
-                              })()}</span>
-                            </div>
+                              </div>
+                            )}
                           </div>
-                          {ingredient.quantity > 1 && (
-                            <div css={css`
-                              margin-top: 0.5rem;
-                              font-size: clamp(0.6rem, 1.8vw, 0.7rem);
-                              color: #666;
-                              text-align: center;
-                            `}>
-                              {ingredient.macroUnit === 'per_100g' 
-                                ? `Per 100g: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
-                                : `Per unit: ${ingredient.carbs}g carbs, ${ingredient.fat}g fat, ${ingredient.protein}g protein, ${ingredient.kcal} kcal`
-                              }
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
