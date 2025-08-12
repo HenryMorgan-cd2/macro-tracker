@@ -154,6 +154,12 @@ export const MealList: React.FC<MealListProps> = ({
     }
   };
 
+  // Format ingredient quantities, showing decimals when needed (e.g., 0.5)
+  const formatQuantity = (quantity: number) => {
+    if (Number.isInteger(quantity)) return quantity.toString();
+    return parseFloat(quantity.toFixed(2)).toString();
+  };
+
   const groupMealsByDay = (meals: Meal[]): DayGroup[] => {
     const groups: { [key: string]: DayGroup } = {};
 
@@ -704,9 +710,9 @@ export const MealList: React.FC<MealListProps> = ({
                               font-size: clamp(0.8rem, 2.5vw, 0.9rem);
                             `}>
                               {ingredient.name} {ingredient.macroUnit === 'per_100g' 
-                                ? `(${ingredient.quantity}g)` 
-                                : ingredient.quantity > 1 
-                                  ? ` x ${ingredient.quantity}` 
+                                ? `(${parseFloat(ingredient.quantity.toFixed(2))}g)` 
+                                : ingredient.quantity !== 1 
+                                  ? ` x ${formatQuantity(ingredient.quantity)}` 
                                   : ''
                               }
                             </div>
