@@ -445,7 +445,7 @@ export const MealForm: React.FC<MealFormProps> = ({
                     value={ingredient.quantity}
                     onChange={(value) => handleIngredientChange(ingredient.key, 'quantity', value)}
                     placeholder="0"
-                    step={1}
+                    step={0.1}
                     min={0}
                   />
                   
