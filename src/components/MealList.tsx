@@ -1,8 +1,7 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { css } from '@emotion/react';
 import { Meal, DailyTargets } from '../types';
-import { Button } from './Button';
 import { calculateMacroProgress, getProgressColor, getProgressText, getProgressBarWidth, shouldShowOverflowIndicator } from '../utils/macroProgress';
 
 interface MealListProps {
@@ -46,9 +45,14 @@ export const MealList: React.FC<MealListProps> = ({
   // State for dropdown menus
   const [openMenus, setOpenMenus] = useState<Set<number>>(new Set());
 
-  // Close all menus when clicking outside
+  // Close menus when clicking outside of any menu container
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      // If the click is inside any menu container, do nothing
+      if (target && target.closest && target.closest('[data-menu-container]')) {
+        return;
+      }
       if (openMenus.size > 0) {
         setOpenMenus(new Set());
       }
@@ -415,7 +419,7 @@ export const MealList: React.FC<MealListProps> = ({
                       `}>
                         <div css={css`
                           position: relative;
-                        `}>
+                        `} data-menu-container>
                           <button css={css`
                             background: #f8f9fa;
                             border: 1px solid #e9ecef;
