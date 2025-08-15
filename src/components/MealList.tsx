@@ -195,11 +195,13 @@ export const MealList: React.FC<MealListProps> = ({
   };
 
   const renderMacroCard = (macro: keyof DailyTargets, label: string, value: number, unit: string, targets?: DailyTargets[keyof DailyTargets]) => {
-    // Type guard to ensure targets has the correct structure
-    const hasTargets = targets && typeof targets === 'object' && 'min' in targets && 'max' in targets;
+    // Determine if we have at least one bound (min or max)
+    const hasTargets = !!(targets && typeof targets === 'object' && (('min' in targets) || ('max' in targets)));
     
-    // Convert to the expected type for progress calculation
-    const progressTargets = hasTargets ? { min: targets.min, max: targets.max } : undefined;
+    // Convert to the expected type for progress calculation, allowing partial targets
+    const progressTargets = targets && typeof targets === 'object'
+      ? { min: 'min' in targets ? targets.min : undefined, max: 'max' in targets ? targets.max : undefined }
+      : undefined;
     const progress = calculateMacroProgress(value, progressTargets);
     const progressColor = getProgressColor(progress.status);
     const progressText = getProgressText(progress.status, label);
