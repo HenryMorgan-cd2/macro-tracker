@@ -45,6 +45,14 @@ export const MealList: React.FC<MealListProps> = ({
   // State for dropdown menus
   const [openMenus, setOpenMenus] = useState<Set<number>>(new Set());
 
+  // Track viewport to control collapse behavior per device size
+  const [isDesktop, setIsDesktop] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   // Close menus when clicking outside of any menu container
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,7 +101,7 @@ export const MealList: React.FC<MealListProps> = ({
     setOpenMenus(newOpenMenus);
   };
 
-  const isCollapsed = (mealId: number) => collapsedMeals.has(mealId);
+  const isCollapsed = (mealId: number) => isDesktop ? false : collapsedMeals.has(mealId);
   const isMenuOpen = (mealId: number) => openMenus.has(mealId);
 
   const calculateTotals = (ingredients: Meal['ingredients']) => {
