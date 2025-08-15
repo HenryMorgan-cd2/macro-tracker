@@ -159,6 +159,8 @@ export const MealForm: React.FC<MealFormProps> = ({
     
     setFormData(prev => ({
       ...prev,
+      // If no name set yet, copy the template name
+      name: prev.name && prev.name.trim().length > 0 ? prev.name : template.name,
       ingredients: [...prev.ingredients, ...newIngredients],
     }));
   };
