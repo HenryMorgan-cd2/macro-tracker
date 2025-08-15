@@ -203,10 +203,10 @@ export const DailyTargetsManager: React.FC<DailyTargetsManagerProps> = ({
       <div css={css`
         margin-bottom: 2rem;
       `}>
-        {renderMacroInputs('protein', 'Protein', 'g')}
-        {renderMacroInputs('carbs', 'Carbohydrates', 'g')}
-        {renderMacroInputs('fat', 'Fat', 'g')}
         {renderMacroInputs('kcal', 'Calories', 'kcal')}
+        {renderMacroInputs('carbs', 'Carbohydrates', 'g')}
+        {renderMacroInputs('protein', 'Protein', 'g')}
+        {renderMacroInputs('fat', 'Fat', 'g')}
       </div>
 
       <div css={css`

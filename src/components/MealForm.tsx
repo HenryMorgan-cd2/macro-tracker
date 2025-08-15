@@ -500,18 +500,18 @@ export const MealForm: React.FC<MealFormProps> = ({
                   </div>
                   
                   <NumberField
-                    label={`Carbs (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                    value={ingredient.carbs}
-                    onChange={(value) => handleIngredientChange(ingredient.key, 'carbs', value)}
+                    label={`Calories ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.kcal}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'kcal', value)}
                     placeholder="0"
                     step={0.1}
                     min={0}
                   />
                   
                   <NumberField
-                    label={`Fat (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                    value={ingredient.fat}
-                    onChange={(value) => handleIngredientChange(ingredient.key, 'fat', value)}
+                    label={`Carbs (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.carbs}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'carbs', value)}
                     placeholder="0"
                     step={0.1}
                     min={0}
@@ -527,9 +527,9 @@ export const MealForm: React.FC<MealFormProps> = ({
                   />
                   
                   <NumberField
-                    label={`Calories ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
-                    value={ingredient.kcal}
-                    onChange={(value) => handleIngredientChange(ingredient.key, 'kcal', value)}
+                    label={`Fat (g) ${ingredient.macroUnit === 'per_100g' ? 'per 100g' : 'per unit'}`}
+                    value={ingredient.fat}
+                    onChange={(value) => handleIngredientChange(ingredient.key, 'fat', value)}
                     placeholder="0"
                     step={0.1}
                     min={0}

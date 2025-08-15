@@ -357,8 +357,8 @@ export const MealList: React.FC<MealListProps> = ({
               margin-top: 1rem;
             `}>
               {renderMacroCard('kcal', 'Total Calories', dayGroup.totals.kcal, 'kcal', dailyTargets?.kcal)}
-              {renderMacroCard('protein', 'Protein', dayGroup.totals.protein, 'g', dailyTargets?.protein)}
               {renderMacroCard('carbs', 'Carbs', dayGroup.totals.carbs, 'g', dailyTargets?.carbs)}
+              {renderMacroCard('protein', 'Protein', dayGroup.totals.protein, 'g', dailyTargets?.protein)}
               {renderMacroCard('fat', 'Fat', dayGroup.totals.fat, 'g', dailyTargets?.fat)}
             </div>
           </div>
@@ -575,12 +575,12 @@ export const MealList: React.FC<MealListProps> = ({
                           font-size: clamp(0.7rem, 2vw, 0.8rem);
                           color: #666;
                           font-weight: 600;
-                        `}>Carbs</div>
+                        `}>kcal</div>
                         <div css={css`
                           font-size: clamp(0.9rem, 2.5vw, 1rem);
                           color: #333;
                           font-weight: 700;
-                        `}>{mealTotals.carbs.toFixed(1)}g</div>
+                        `}>{mealTotals.kcal.toFixed(0)}</div>
                       </div>
                       <div css={css`
                         text-align: center;
@@ -594,12 +594,12 @@ export const MealList: React.FC<MealListProps> = ({
                           font-size: clamp(0.7rem, 2vw, 0.8rem);
                           color: #666;
                           font-weight: 600;
-                        `}>Fat</div>
+                        `}>Carbs</div>
                         <div css={css`
                           font-size: clamp(0.9rem, 2.5vw, 1rem);
                           color: #333;
                           font-weight: 700;
-                        `}>{mealTotals.fat.toFixed(1)}g</div>
+                        `}>{mealTotals.carbs.toFixed(1)}g</div>
                       </div>
                       <div css={css`
                         text-align: center;
@@ -632,12 +632,12 @@ export const MealList: React.FC<MealListProps> = ({
                           font-size: clamp(0.7rem, 2vw, 0.8rem);
                           color: #666;
                           font-weight: 600;
-                        `}>kcal</div>
+                        `}>Fat</div>
                         <div css={css`
                           font-size: clamp(0.9rem, 2.5vw, 1rem);
                           color: #333;
                           font-weight: 700;
-                        `}>{mealTotals.kcal.toFixed(0)}</div>
+                        `}>{mealTotals.fat.toFixed(1)}g</div>
                       </div>
                     </div>
                     
@@ -739,13 +739,13 @@ export const MealList: React.FC<MealListProps> = ({
                                   font-size: clamp(0.7rem, 2vw, 0.8rem);
                                 }
                               `}>
-                                <span>Carbs</span>
+                                <span>kcal</span>
                                 <span>{(() => {
                                   if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                    return (ingredient.carbs * ingredient.quantity / 100).toFixed(1);
+                                    return (ingredient.kcal * ingredient.quantity / 100).toFixed(0);
                                   }
-                                  return (ingredient.carbs * ingredient.quantity).toFixed(1);
-                                })()}g</span>
+                                  return (ingredient.kcal * ingredient.quantity).toFixed(0);
+                                })()}</span>
                               </div>
                               <div css={css`
                                 text-align: center;
@@ -762,12 +762,12 @@ export const MealList: React.FC<MealListProps> = ({
                                   font-size: clamp(0.7rem, 2vw, 0.8rem);
                                 }
                               `}>
-                                <span>Fat</span>
+                                <span>Carbs</span>
                                 <span>{(() => {
                                   if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                    return (ingredient.fat * ingredient.quantity / 100).toFixed(1);
+                                    return (ingredient.carbs * ingredient.quantity / 100).toFixed(1);
                                   }
-                                  return (ingredient.fat * ingredient.quantity).toFixed(1);
+                                  return (ingredient.carbs * ingredient.quantity).toFixed(1);
                                 })()}g</span>
                               </div>
                               <div css={css`
@@ -808,13 +808,13 @@ export const MealList: React.FC<MealListProps> = ({
                                   font-size: clamp(0.7rem, 2vw, 0.8rem);
                                 }
                               `}>
-                                <span>kcal</span>
+                                <span>Fat</span>
                                 <span>{(() => {
                                   if (ingredient.macroUnit === 'per_100g' && ingredient.quantity > 0) {
-                                    return (ingredient.kcal * ingredient.quantity / 100).toFixed(0);
+                                    return (ingredient.fat * ingredient.quantity / 100).toFixed(1);
                                   }
-                                  return (ingredient.kcal * ingredient.quantity).toFixed(0);
-                                })()}</span>
+                                  return (ingredient.fat * ingredient.quantity).toFixed(1);
+                                })()}g</span>
                               </div>
                             </div>
                             {ingredient.quantity > 1 && (

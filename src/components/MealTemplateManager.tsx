@@ -319,10 +319,10 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
             border-radius: 4px;
             font-size: 0.875rem;
           `}>
-            <strong>Total Macros:</strong> {getTotalMacros(newTemplate.ingredients).carbs.toFixed(1)}g carbs, 
-            {getTotalMacros(newTemplate.ingredients).fat.toFixed(1)}g fat, 
+            <strong>Total Macros:</strong> {getTotalMacros(newTemplate.ingredients).kcal.toFixed(1)} kcal, 
+            {getTotalMacros(newTemplate.ingredients).carbs.toFixed(1)}g carbs, 
             {getTotalMacros(newTemplate.ingredients).protein.toFixed(1)}g protein, 
-            {getTotalMacros(newTemplate.ingredients).kcal.toFixed(1)} kcal
+            {getTotalMacros(newTemplate.ingredients).fat.toFixed(1)}g fat
           </div>
         )}
       </div>
@@ -551,15 +551,15 @@ export const MealTemplateManager: React.FC<MealTemplateManagerProps> = ({
                         <div css={css`text-align: center;`}>
                           {template.ingredients.length} ingredients
                         </div>
-                                                  <div css={css`text-align: center;`}>
-                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).carbs.toFixed(1)}g
-                          </div>
-                          <div css={css`text-align: center;`}>
-                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).fat.toFixed(1)}g
-                          </div>
-                          <div css={css`text-align: center;`}>
-                            {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).protein.toFixed(1)}g
-                          </div>
+                        <div css={css`text-align: center;`}>
+                          {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).kcal.toFixed(1)} kcal
+                        </div>
+                        <div css={css`text-align: center;`}>
+                          {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).carbs.toFixed(1)}g
+                        </div>
+                        <div css={css`text-align: center;`}>
+                          {getTotalMacros(template.ingredients.map(ing => ({ id: ing.id!, quantity: ing.quantity || 1 }))).protein.toFixed(1)}g
+                        </div>
                         <div css={css`
                           display: flex;
                           gap: 0.5rem;
