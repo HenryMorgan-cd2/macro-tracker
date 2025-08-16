@@ -589,6 +589,16 @@ export const MealList: React.FC<MealListProps> = ({
                           color: #333;
                           font-weight: 700;
                         `}>{mealTotals.kcal.toFixed(0)}</div>
+                        {dayGroup.totals.kcal > 0 && (
+                          <div css={css`
+                            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                            color: #888;
+                            font-weight: 600;
+                            margin-top: 0.15rem;
+                          `}>
+                            {((mealTotals.kcal / dayGroup.totals.kcal) * 100).toFixed(0)}% of day
+                          </div>
+                        )}
                       </div>
                       <div css={css`
                         text-align: center;
@@ -608,6 +618,16 @@ export const MealList: React.FC<MealListProps> = ({
                           color: #333;
                           font-weight: 700;
                         `}>{mealTotals.carbs.toFixed(1)}g</div>
+                        {dayGroup.totals.carbs > 0 && (
+                          <div css={css`
+                            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                            color: #888;
+                            font-weight: 600;
+                            margin-top: 0.15rem;
+                          `}>
+                            {((mealTotals.carbs / dayGroup.totals.carbs) * 100).toFixed(0)}% of day
+                          </div>
+                        )}
                       </div>
                       <div css={css`
                         text-align: center;
@@ -627,6 +647,16 @@ export const MealList: React.FC<MealListProps> = ({
                           color: #333;
                           font-weight: 700;
                         `}>{mealTotals.protein.toFixed(1)}g</div>
+                        {dayGroup.totals.protein > 0 && (
+                          <div css={css`
+                            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                            color: #888;
+                            font-weight: 600;
+                            margin-top: 0.15rem;
+                          `}>
+                            {((mealTotals.protein / dayGroup.totals.protein) * 100).toFixed(0)}% of day
+                          </div>
+                        )}
                       </div>
                       <div css={css`
                         text-align: center;
@@ -646,6 +676,16 @@ export const MealList: React.FC<MealListProps> = ({
                           color: #333;
                           font-weight: 700;
                         `}>{mealTotals.fat.toFixed(1)}g</div>
+                        {dayGroup.totals.fat > 0 && (
+                          <div css={css`
+                            font-size: clamp(0.65rem, 1.8vw, 0.75rem);
+                            color: #888;
+                            font-weight: 600;
+                            margin-top: 0.15rem;
+                          `}>
+                            {((mealTotals.fat / dayGroup.totals.fat) * 100).toFixed(0)}% of day
+                          </div>
+                        )}
                       </div>
                     </div>
                     
